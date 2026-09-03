@@ -1475,7 +1475,7 @@
 .z1r-mark-stock-option[data-active="true"],
 .z1r-mark-rupy-option[data-active="true"],
 .z1r-mark-warp-option[data-active="true"] {
-  color: var(--z1r-bg);
+  color: var(--z1r-text);
   background-color: color-mix(in srgb, var(--z1r-accent), transparent 60%);
   border-color: var(--z1r-accent);
   font-weight: 700;
