@@ -39,9 +39,12 @@ export type MarkKind =
   | 'dungeon'
   | 'shop'
   | 'item'
-  | 'gamble'
+  | 'rupy'
   | 'hintroom'
-  | 'visited';
+  | 'warp'
+  | 'choose'
+  | 'visited'
+  | 'start';
 
 export interface MarkDef {
   readonly kind: MarkKind;
@@ -63,19 +66,16 @@ export interface MarkDef {
  * dungeon, and what the shop sells.
  */
 export const MARKS: readonly MarkDef[] = [
-  { kind: 'none', name: 'Unmarked', sprite: null, color: 'transparent' },
-  { kind: 'dungeon', name: 'Dungeon', sprite: 'mark.dungeon', color: '#c34a4a' },
-  { kind: 'shop', name: 'Shop', sprite: 'mark.shop', color: '#3f8fd0' },
-  { kind: 'item', name: 'Item', sprite: 'mark.item', color: '#d9a441' },
-  // The other two things a cave can be. Both are worth a second visit — a
-  // gambling room once the rupees are spare, a hint room the moment you have
-  // forgotten what it said — and neither is an item, a shop or a dead end.
-  { kind: 'gamble', name: 'Gambling', sprite: 'mark.gamble', color: '#4bb572' },
-  { kind: 'hintroom', name: 'Hint room', sprite: 'mark.hintroom', color: '#9b7fd4' },
-  // "Been here, nothing to come back for" is as worth recording as a find —
-  // without it every unmarked screen is ambiguous between unchecked and empty,
-  // which is most of the map for most of a run.
-  { kind: 'visited', name: 'Checked, nothing', sprite: 'mark.empty', color: '#8e8e8e' },
+  { kind: 'none', name: 'Unmarked', sprite: null, color: '#555555' },
+  { kind: 'dungeon', name: 'Dungeon', sprite: 'mark.dungeon', color: '#FF8C00' },
+  { kind: 'shop', name: 'Shop', sprite: 'mark.shop', color: '#D4FF00' },
+  { kind: 'item', name: 'Item', sprite: 'mark.item', color: '#00FFB2' },
+  { kind: 'rupy', name: 'Rupees', sprite: 'mark.rupy', color: '#00B2FF' },
+  { kind: 'hintroom', name: 'Hint room', sprite: 'mark.hintroom', color: '#0000FF' },
+  { kind: 'warp', name: 'Warp stair', sprite: 'mark.warp', color: '#8C00FF' },
+  { kind: 'choose', name: 'Choose any', sprite: 'mark.choose', color: '#FF00D4' },
+  { kind: 'visited', name: 'Checked', sprite: 'mark.empty', color: '#FF0000' },
+  { kind: 'start', name: 'Start', sprite: 'mark.start', color: '#00FF00' },
 ];
 
 /**
@@ -95,16 +95,37 @@ export interface ShopStockDef {
 
 export const SHOP_STOCK: readonly ShopStockDef[] = [
   { id: 'bomb', name: 'Bombs', sprite: 'item.bomb', code: 'BM' },
-  { id: 'key', name: 'Keys', sprite: 'item.key.magical', code: 'KY' },
+  { id: 'key', name: 'Keys', sprite: 'item.key', code: 'KY' },
   { id: 'arrow', name: 'Arrows', sprite: 'item.arrow.wood', code: 'AR' },
   { id: 'potion', name: 'Potion', sprite: 'item.potion.blue', code: 'PO' },
-  // The one piece of real progression sold rather than found, and the one you
-  // most want to be able to find your way back to once the rupees are in.
+  { id: 'life', name: 'Life', sprite: 'item.life', code: 'LI' },
+  { id: 'candle', name: 'Candle', sprite: 'item.candle.blue', code: 'CA' },
+  { id: 'bait', name: 'Bait', sprite: 'item.bait', code: 'BT' },
+  { id: 'shield', name: 'Shield', sprite: 'item.shield.magical', code: 'MS' },
   { id: 'blueRing', name: 'Blue Ring', sprite: 'item.ring.blue', code: 'BR' },
 ];
 
 export const SHOP_STOCK_BY_ID: ReadonlyMap<string, ShopStockDef> = new Map(
   SHOP_STOCK.map((entry) => [entry.id, entry]),
+);
+
+export interface RupyTypeDef {
+  readonly id: string;
+  readonly name: string;
+  readonly sprite: string;
+  readonly code: string;
+}
+
+export const RUPY_TYPES: readonly RupyTypeDef[] = [
+  { id: 'small', name: 'Small', sprite: 'mark.rupy.small', code: 'S' },
+  { id: 'medium', name: 'Medium', sprite: 'mark.rupy.medium', code: 'M' },
+  { id: 'large', name: 'Large', sprite: 'mark.rupy.large', code: 'L' },
+  { id: 'gamble', name: 'Gamble', sprite: 'mark.rupy.gamble', code: '?' },
+  { id: 'door', name: 'Door repair', sprite: 'mark.rupy.door', code: 'X' },
+];
+
+export const RUPY_TYPES_BY_ID: ReadonlyMap<string, RupyTypeDef> = new Map(
+  RUPY_TYPES.map((entry) => [entry.id, entry]),
 );
 
 /**
@@ -127,7 +148,7 @@ export interface DungeonBlockDef {
 }
 
 export const DUNGEON_BLOCKS: readonly DungeonBlockDef[] = [
-  { id: 'key', name: 'Locked door', sprite: 'item.key.magical', code: 'KY' },
+  { id: 'key', name: 'Locked door', sprite: 'item.key', code: 'KY' },
   { id: 'bomb', name: 'Bomb wall', sprite: 'item.bomb', code: 'BM' },
   { id: 'ladder', name: 'Ladder gap', sprite: 'item.ladder', code: 'LD' },
   { id: 'bow', name: 'Needs the Bow', sprite: 'item.bow', code: 'BW' },

@@ -72,29 +72,74 @@ export const VECTORS: Readonly<Record<string, VectorSprite>> = {
         fill="#d9a441" stroke="#6d4d10" stroke-width="1" stroke-linejoin="round"/>`,
   ),
 
-  /*
-   * The money-making game. A rupee, because that is what the room is.
-   *
-   * Drawn as the NES rupee's flattened hexagon rather than a coin, so it does
-   * not read as the shop's awning at a glance — the two are next to each other
-   * in the toolbar and both are "a cave that wants your money".
-   */
-  'mark.gamble': V(
+  'mark.rupy': V(
     `<path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z"
         fill="#4bb572" stroke="#1d5433" stroke-width="1" stroke-linejoin="round"/>
      <path d="M8 4.4 L10.4 6.2 L10.4 9.8 L8 11.6 L5.6 9.8 L5.6 6.2 Z" fill="#a8e6c1"/>`,
   ),
 
-  /*
-   * The old man with something to tell you. A speech bubble rather than a
-   * figure: at 18px a person is an indistinct blob, whereas a bubble with a
-   * tail reads immediately and says "there are words here".
-   */
+  'mark.rupy.small': V(
+    `<g transform="translate(8,8) scale(0.75) translate(-8,-8)">
+       <path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="#4bb572" stroke="#1d5433" stroke-width="1" stroke-linejoin="round"/>
+       <path d="M8 4.4 L10.4 6.2 L10.4 9.8 L8 11.6 L5.6 9.8 L5.6 6.2 Z" fill="#a8e6c1"/>
+     </g>`,
+  ),
+
+  'mark.rupy.medium': V(
+    `<g transform="translate(5,8) scale(0.55) translate(-8,-8)">
+       <path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="#4bb572" stroke="#1d5433" stroke-width="1" stroke-linejoin="round"/>
+       <path d="M8 4.4 L10.4 6.2 L10.4 9.8 L8 11.6 L5.6 9.8 L5.6 6.2 Z" fill="#a8e6c1"/>
+     </g>
+     <g transform="translate(11,8) scale(0.55) translate(-8,-8)">
+       <path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="#4bb572" stroke="#1d5433" stroke-width="1" stroke-linejoin="round"/>
+       <path d="M8 4.4 L10.4 6.2 L10.4 9.8 L8 11.6 L5.6 9.8 L5.6 6.2 Z" fill="#a8e6c1"/>
+     </g>`,
+  ),
+
+  'mark.rupy.large': V(
+    `<g transform="translate(8,5.2) scale(0.5) translate(-8,-8)">
+       <path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="#4bb572" stroke="#1d5433" stroke-width="1" stroke-linejoin="round"/>
+       <path d="M8 4.4 L10.4 6.2 L10.4 9.8 L8 11.6 L5.6 9.8 L5.6 6.2 Z" fill="#a8e6c1"/>
+     </g>
+     <g transform="translate(5.3,10.4) scale(0.5) translate(-8,-8)">
+       <path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="#4bb572" stroke="#1d5433" stroke-width="1" stroke-linejoin="round"/>
+       <path d="M8 4.4 L10.4 6.2 L10.4 9.8 L8 11.6 L5.6 9.8 L5.6 6.2 Z" fill="#a8e6c1"/>
+     </g>
+     <g transform="translate(10.7,10.4) scale(0.5) translate(-8,-8)">
+       <path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="#4bb572" stroke="#1d5433" stroke-width="1" stroke-linejoin="round"/>
+       <path d="M8 4.4 L10.4 6.2 L10.4 9.8 L8 11.6 L5.6 9.8 L5.6 6.2 Z" fill="#a8e6c1"/>
+     </g>`,
+  ),
+
+  'mark.rupy.gamble': V(
+    `<path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="none" stroke="#000000" stroke-width="1.8" stroke-linejoin="round"/>
+     <path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="none" stroke="#ffffff" stroke-width="1" stroke-linejoin="round"/>
+     <text x="8" y="9.6" text-anchor="middle" dominant-baseline="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" stroke="#000000" stroke-width="0.9" paint-order="stroke fill" stroke-linejoin="round">?</text>`,
+  ),
+
+  'mark.rupy.door': V(
+    `<path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="none" stroke="#000000" stroke-width="1.8" stroke-linejoin="round"/>
+     <path d="M8 1.6 L12.6 5.2 L12.6 10.8 L8 14.4 L3.4 10.8 L3.4 5.2 Z" fill="none" stroke="#ffffff" stroke-width="1" stroke-linejoin="round"/>
+     <g stroke="#000000" stroke-width="2.2" stroke-linecap="round">
+       <line x1="5.2" y1="5.2" x2="10.8" y2="10.8"/>
+       <line x1="10.8" y1="5.2" x2="5.2" y2="10.8"/>
+     </g>
+     <g stroke="#ff6767" stroke-width="1.4" stroke-linecap="round">
+       <line x1="5.2" y1="5.2" x2="10.8" y2="10.8"/>
+       <line x1="10.8" y1="5.2" x2="5.2" y2="10.8"/>
+     </g>`,
+  ),
+
   'mark.hintroom': V(
     `<path d="M2 3 L14 3 L14 11 L8.6 11 L5.4 14 L5.4 11 L2 11 Z"
         fill="#9b7fd4" stroke="#3f2d63" stroke-width="1" stroke-linejoin="round"/>
      <rect x="4.4" y="5.6" width="7.2" height="1.2" fill="#efe8ff"/>
      <rect x="4.4" y="8" width="4.8" height="1.2" fill="#efe8ff"/>`,
+  ),
+
+  'mark.choose': V(
+    `<path d="M8,14.23 L7.03,13.35 C3.6,10.24 1.33,8.19 1.33,5.67 C1.33,3.61 2.95,2 5,2 C6.16,2 7.27,2.54 8,3.39 C8.73,2.54 9.84,2 11,2 C13.05,2 14.67,3.61 14.67,5.67 C14.67,8.19 12.4,10.24 8.97,13.35 Z" fill="#e5343e" stroke="#a10f18" stroke-width="0.4" stroke-linejoin="round"/>
+     <text x="8" y="8.9" text-anchor="middle" dominant-baseline="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" fill="#ffffff">?</text>`,
   ),
 
   'mark.bombable': V(
@@ -116,8 +161,23 @@ export const VECTORS: Readonly<Record<string, VectorSprite>> = {
   ),
 
   'mark.warp': V(
-    `<path d="M8 8 m0 -5.6 a5.6 5.6 0 1 1 -3.9 9.6 a4 4 0 1 1 6.6 -4.4 a2.5 2.5 0 1 0 -3.9 2.8"
-        fill="none" stroke="#8f5cc4" stroke-width="1.7" stroke-linecap="round"/>`,
+    `<g transform="translate(1,1) scale(0.875)">
+       <rect x="0" y="0" width="16" height="16" fill="#c07000"/>
+       <rect x="1" y="0" width="14" height="1" fill="#905400"/>
+       <rect x="1" y="1" width="2" height="1" fill="#403628"/>
+       <rect x="3" y="1" width="12" height="1" fill="#000000"/>
+       <rect x="1" y="2" width="2" height="13" fill="#ffd8a0"/>
+       <rect x="3" y="2" width="1" height="1" fill="#301c00"/>
+       <rect x="4" y="2" width="11" height="1" fill="#000000"/>
+       <rect x="4" y="3" width="11" height="1" fill="#000000"/>
+       <rect x="4" y="4" width="3" height="11" fill="#ffd8a0"/>
+       <rect x="7" y="4" width="8" height="1" fill="#000000"/>
+       <rect x="8" y="5" width="7" height="1" fill="#000000"/>
+       <rect x="8" y="6" width="3" height="9" fill="#ffd8a0"/>
+       <rect x="11" y="6" width="4" height="1" fill="#000000"/>
+       <rect x="12" y="7" width="3" height="1" fill="#000000"/>
+       <rect x="12" y="8" width="3" height="7" fill="#ffd8a0"/>
+     </g>`,
   ),
 
   'mark.empty': V(

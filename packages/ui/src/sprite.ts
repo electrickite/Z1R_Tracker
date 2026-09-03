@@ -115,7 +115,7 @@ export function createSprite(
         paint(element, resolver.fallback(key), size);
         return;
       }
-      snapToWholePixels(element, resolver.naturalSize(key), size);
+      //snapToWholePixels(element, resolver.naturalSize(key), size);
     });
   }
 

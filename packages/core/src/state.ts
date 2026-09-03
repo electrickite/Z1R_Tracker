@@ -9,8 +9,19 @@
 
 import { ITEMS, ITEMS_BY_ID, maxValue } from './items.js';
 import { DUNGEONS, holdsTriforcePiece } from './dungeons.js';
-import { cycleMark, type MarkKind } from './overworld.js';
-import { POOL_BY_ID, createSeedSettings, questsMustDiffer, type SeedSettings } from './seed.js';
+import {
+  cycleMark,
+  type MarkKind,
+  SHOP_STOCK_BY_ID,
+  RUPY_TYPES_BY_ID
+} from './overworld.js';
+import {
+  POOL_BY_ID,
+  OVERWORLD_LOCATIONS_BY_ID,
+  createSeedSettings,
+  questsMustDiffer,
+  type SeedSettings
+} from './seed.js';
 
 export const STATE_VERSION = 8;
 
@@ -68,6 +79,8 @@ export interface ScreenNote {
   shop: string[];
   /** `DungeonBlockDef` ids: what turned you back last time you went in. */
   blocks: string[];
+  /** `RupyTypeDef` id. */
+  rupy: string;
   /**
    * Which named overworld spot this is — `ow.whiteSword`, `ow.armos`,
    * `ow.coast`. Empty when the screen holds an item that is not one of them.
@@ -75,6 +88,8 @@ export interface ScreenNote {
   spot: string;
   /** Shuffle-pool entry id sitting on this screen. */
   item: string;
+  /** Warp hall number. */
+  warp: number;
 }
 
 export interface TrackerState {
@@ -94,6 +109,8 @@ export interface TrackerState {
   dungeons: Record<string, DungeonState>;
   /** overworld screen id -> mark. */
   marks: Record<string, MarkKind>;
+  /** Start screen id. */
+  start: string;
   /** overworld screen id -> detail for that mark. Sparse: absent means bare. */
   screenNotes: Record<string, ScreenNote>;
   /** Seed number, flag string, and the settings that reshape the tracker. */
@@ -135,7 +152,12 @@ export type Action =
    * Put Level N on a screen. There is only one of each, so this moves it if it
    * was already somewhere, rather than leaving two.
    */
-  | { type: 'placeDungeon'; screen: string; level: number }
+  | { type: 'placeDungeon'; screen: string; level: number, blocks: string[] }
+  | { type: 'placeRupy'; screen: string; rupy: string }
+  | { type: 'placeWarp'; screen: string; warp: number }
+  | { type: 'placeStart'; screen: string }
+  | { type: 'placeShop'; screen: string; shop: string[] }
+  | { type: 'placeItem'; screen: string; item: string }
   /** Wipe every overworld mark, leaving items and Triforce alone. */
   | { type: 'clearMap' }
   | { type: 'setSeed'; patch: Partial<SeedSettings> }
@@ -162,7 +184,7 @@ function emptyDungeon(): DungeonState {
 }
 
 function emptyNote(): ScreenNote {
-  return { dungeon: 0, shop: [], blocks: [], spot: '', item: '' };
+  return { dungeon: 0, shop: [], blocks: [], rupy: '', spot: '', item: '', warp: 0 };
 }
 
 /** True once a note carries nothing worth keeping. */
@@ -171,8 +193,10 @@ function noteIsBare(note: ScreenNote): boolean {
     note.dungeon === 0 &&
     note.shop.length === 0 &&
     note.blocks.length === 0 &&
+    note.rupy === '' &&
     note.spot === '' &&
-    note.item === ''
+    note.item === '' &&
+    note.warp === 0
   );
 }
 
@@ -230,6 +254,7 @@ export function createInitialState(now = Date.now()): TrackerState {
     dungeons,
     marks: {},
     screenNotes: {},
+    start: '',
     seed: createSeedSettings(),
     locations: {},
     extraFloorSlots: {},
@@ -255,6 +280,42 @@ export function reduce(state: TrackerState, action: Action, now = Date.now()): T
     rev: state.rev + 1,
     updatedAt: now,
   });
+
+  const placeMark = (mark: string, screen: string, details: object): TrackerState => {
+    const marks = { ...state.marks };
+    const screenNotes = { ...state.screenNotes };
+
+    marks[screen] = mark;
+    screenNotes[screen] = {
+      ...emptyNote(),
+      ...details,
+    };
+    console.log(marks[screen]);
+    console.log(screenNotes[screen]);
+    return bump({ marks, screenNotes });
+  };
+
+  const placeUniqueMark = (mark: string, note: any, screen: string, details: object): TrackerState => {
+    const marks = { ...state.marks };
+    const screenNotes = { ...state.screenNotes };
+
+    let carried: ScreenNote | undefined;
+    for (const [iScreen, iNote] of Object.entries(screenNotes)) {
+      if (iScreen === screen || iNote[mark] !== note) continue;
+      carried = iNote;
+      delete screenNotes[iScreen];
+      delete marks[iScreen];
+    }
+
+    marks[screen] = mark;
+    screenNotes[screen] = {
+      ...emptyNote(),
+      ...carried,
+      ...screenNotes[screen],
+      ...details,
+    };
+    return bump({ marks, screenNotes });
+  };
 
   switch (action.type) {
     case 'cycleItem': {
@@ -301,34 +362,8 @@ export function reduce(state: TrackerState, action: Action, now = Date.now()): T
 
     case 'placeDungeon': {
       const level = Math.min(Math.max(Math.trunc(action.level) || 0, 1), 9);
-      const marks = { ...state.marks };
-      const screenNotes = { ...state.screenNotes };
-
-      /*
-       * A level exists once. Marking it somewhere new means the old spot was
-       * wrong, so the marker moves rather than duplicating — two screens both
-       * claiming Level 3 is worse than no marker at all, because you cannot
-       * tell which one to walk to.
-       *
-       * The note travels with it. Blockers belong to the dungeon, not to the
-       * square of grass it was mistakenly pinned on.
-       */
-      let carried: ScreenNote | undefined;
-      for (const [screen, note] of Object.entries(screenNotes)) {
-        if (screen === action.screen || note.dungeon !== level) continue;
-        carried = note;
-        delete screenNotes[screen];
-        delete marks[screen];
-      }
-
-      marks[action.screen] = 'dungeon';
-      screenNotes[action.screen] = {
-        ...emptyNote(),
-        ...carried,
-        ...screenNotes[action.screen],
-        dungeon: level,
-      };
-      return bump({ marks, screenNotes });
+      const blocks = Array.isArray(action.blocks) ? action.blocks : [];
+      return placeUniqueMark('dungeon', level, action.screen, { dungeon: level, blocks });
     }
 
     case 'toggleDungeonBlock': {
@@ -341,6 +376,34 @@ export function reduce(state: TrackerState, action: Action, now = Date.now()): T
           : [...current.blocks, action.block].sort(),
       };
       return bump({ screenNotes: pruneNote(state.screenNotes, action.screen, next) });
+    }
+
+    case 'placeRupy': {
+      const rupy = RUPY_TYPES_BY_ID.has(action.rupy) ? action.rupy : '';
+      return placeMark('rupy', action.screen, { rupy });
+    }
+
+    case 'placeWarp': {
+      const warp = Math.min(Math.max(Math.trunc(action.warp) || 0, 1), 4);
+      return placeUniqueMark('warp', warp, action.screen, { warp });
+    }
+
+    case 'placeStart': {
+      const start = action.screen;
+      return bump({ start });
+    }
+
+    case 'placeShop': {
+      const shop = Array.isArray(action.shop)
+        ? action.shop.filter((id) => { return SHOP_STOCK_BY_ID.has(id); })
+        : [];
+      return placeMark('shop', action.screen, { shop });
+    }
+
+    case 'placeItem': {
+      const item = POOL_BY_ID.has(action.item) ? action.item : '';
+      const spot = OVERWORLD_LOCATIONS_BY_ID.has(action.spot) ? action.spot : '';
+      return placeMark('item', action.screen, { item, spot });
     }
 
     case 'clearMap':

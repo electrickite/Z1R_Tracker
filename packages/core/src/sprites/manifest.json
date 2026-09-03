@@ -103,6 +103,11 @@
       "name": "Power Bracelet",
       "glyph": "PB"
     },
+    "item.key": {
+      "url": "https://www.videogamesprites.net/Zelda1/Objects/Key.gif",
+      "name": "Key",
+      "glyph": "KY"
+    },
     "item.key.magical": {
       "url": "https://www.videogamesprites.net/Zelda1/Objects/Magical%20Key.gif",
       "name": "Magical Key",
@@ -132,6 +137,11 @@
       "url": "https://www.videogamesprites.net/Zelda1/Objects/Heart%20Container.gif",
       "name": "Heart Container",
       "glyph": "HC"
+    },
+    "item.life": {
+      "url": "https://www.videogamesprites.net/Zelda1/Objects/Life1.gif",
+      "name": "Life",
+      "glyph": "LI"
     },
     "dungeon.1": {
       "url": "",
@@ -217,6 +227,11 @@
       "url": "",
       "name": "Warp",
       "glyph": "W"
+    },
+    "mark.start": {
+      "url": "https://www.videogamesprites.net/Zelda1/Objects/Compass.gif",
+      "name": "Start",
+      "glyph": "S"
     },
     "mark.empty": {
       "url": "",

@@ -1,5 +1,9 @@
 @import './theme.css';
 
+:root {
+  --scale-factor: 1;
+}
+
 /*
  * Shared tracker styling.
  *
@@ -25,8 +29,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: var(--sprite-size, 32px);
-  block-size: var(--sprite-size, 32px);
+  inline-size: calc(var(--scale-factor) * var(--sprite-size, 32px));
+  block-size: calc(var(--scale-factor) * var(--sprite-size, 32px));
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
@@ -45,12 +49,12 @@
 
 .z1r-sprite[data-sprite-mode="glyph"] {
   font-family: var(--z1r-font-mono);
-  font-size: calc(var(--sprite-size, 32px) * 0.42);
+  font-size: calc(var(--scale-factor) * var(--sprite-size, 32px) * 0.42);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--z1r-muted);
   background: transparent;
-  border: var(--z1r-border-width) dashed var(--z1r-border);
+  border: calc(var(--scale-factor) * var(--z1r-border-width)) dashed var(--z1r-border);
   border-radius: var(--z1r-radius);
   box-sizing: border-box;
 }
@@ -510,7 +514,7 @@
    */
   grid-template-columns: repeat(var(--map-columns, 16), var(--map-cell, 1fr));
   justify-content: center;
-  gap: 2px;
+  gap: calc(var(--scale-factor) * 2px);
 }
 
 .z1r-screen {
@@ -525,15 +529,15 @@
   padding: 0;
   overflow: hidden;
   background: var(--z1r-field);
-  border: var(--z1r-border-width) solid var(--z1r-border);
-  border-radius: 2px;
+  border: calc(var(--scale-factor) * var(--z1r-border-width)) solid var(--z1r-border);
+  border-radius: calc(var(--scale-factor) * 2px);
   cursor: pointer;
   box-shadow: inset 0 0 0 0 var(--mark-color, transparent);
   transition: box-shadow 90ms linear, background-color 90ms linear;
 }
 
 .z1r-screen:not([data-mark="none"]) {
-  box-shadow: inset 0 0 0 2px var(--mark-color, transparent);
+  box-shadow: inset 0 0 0 calc(var(--scale-factor) * 2px) var(--mark-color, transparent);
 }
 
 .z1r-screen[data-mark="empty"] {
@@ -544,27 +548,34 @@
   border-color: var(--z1r-accent);
 }
 
+.z1r-screen[data-start="true"]::after {
+  content: '';
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%; 
+  opacity: 50%;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(0, 128, 0, 1),
+    rgba(0, 128, 0, 1) calc(var(--scale-factor) * 5px),
+    transparent calc(var(--scale-factor) * 2px),
+    transparent calc(var(--scale-factor) * 10px)
+  );
+}
+
 .z1r-screen-terrain {
   position: absolute;
   inset: 0;
-  /* Explicitly the bottom layer. Positioned elements paint above static ones,
-     so without this the terrain covered the marks entirely — they were being
-     drawn, just behind the map. */
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
 }
 
-/*
- * Nearest neighbour at every size.
- *
- * This was on `auto` with a note that reducing an 80x55 screen into a small
- * cell wants averaging, since nearest neighbour drops whole rows at that ratio.
- * That is true, and it still reads as blur — which is the wrong trade for pixel
- * art. Sharp with some rows missing looks like the game; smooth looks like a
- * photograph of the game. The cells are whole pixels now, so this is as clean
- * as the ratio allows.
- */
+.z1r-map[data-hidemarks="true"] .z1r-screen-terrain {
+  z-index: 100;
+}
+
 .z1r-screen-terrain img {
   position: absolute;
   max-inline-size: none;
@@ -574,18 +585,16 @@
 .z1r-screen-region {
   position: absolute;
   z-index: 1;
-  inset-block-start: 1px;
-  inset-inline-start: 2px;
+  inset-block-start: calc(var(--scale-factor) * 1px);
+  inset-inline-start: calc(var(--scale-factor) * 2px);
   font-family: var(--z1r-font-mono);
-  font-size: var(--z1r-text-2xs);
+  font-size: calc(var(--scale-factor) * var(--z1r-text-2xs));
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
   color: var(--z1r-text);
-  /* Over map art a flat colour is not enough; the chip keeps the two letters
-     legible on sand, water or forest alike. */
-  padding: 0 2px;
-  border-radius: 0 0 3px 0;
+  padding: 0 calc(var(--scale-factor) * 2px);
+  border-radius: 0 0 calc(var(--scale-factor) * 3px) 0;
   background: color-mix(in srgb, var(--z1r-bg) 88%, transparent);
   opacity: 0.85;
   pointer-events: none;
@@ -607,17 +616,33 @@
   z-index: 2;
   align-items: center;
   justify-content: center;
-  padding: 2px;
+  padding: calc(var(--scale-factor) * 2px);
   border-radius: 50%;
-  /* A constant dark disc under the icon: terrain art underneath varies wildly,
-     and a mark that disappears over forest is worse than no mark. */
   background: color-mix(in srgb, var(--z1r-bg) 80%, transparent);
-  box-shadow: 0 0 0 1.5px var(--mark-color, transparent);
+  box-shadow: 0 0 0 calc(var(--scale-factor) * 1.5px) var(--mark-color, transparent);
   pointer-events: none;
 }
 
 .z1r-screen:not([data-mark="none"]) .z1r-screen-mark {
   display: flex;
+}
+
+.z1r-screen[data-mark="dungeon"] .z1r-screen-mark {
+  border-radius: 0;
+}
+
+.z1r-screen[data-mark="dungeon"] .z1r-screen-mark span {
+  font-size: calc(var(--scale-factor) * 16px);
+  display: inline-block;
+  vertical-align: middle;
+  width: calc(var(--scale-factor) * 16px);
+  height: calc(var(--scale-factor) * 16px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--z1r-text);
+  text-shadow: 0 calc(var(--scale-factor) * 1px) 0 #000, 0 calc(var(--scale-factor) * -1px) 0 #000, calc(var(--scale-factor) * 1px) 0 0 #000, calc(var(--scale-factor) * -1px) 0 0 #000,
+    calc(var(--scale-factor) * 1px) calc(var(--scale-factor) * 1px) 0 #000, calc(var(--scale-factor) * -1px) calc(var(--scale-factor) * -1px) 0 #000;
 }
 
 /*
@@ -633,7 +658,7 @@
   inset-block-end: 0;
   inset-inline: 0;
   z-index: 3;
-  font-size: var(--z1r-text-2xs);
+  font-size: calc(var(--scale-factor) * var(--z1r-text-2xs));
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
@@ -642,7 +667,7 @@
   color: var(--z1r-text);
   /* Outlined rather than backed by a plate: over 128 wildly different terrain
      tiles an outline is the only thing that reads everywhere. */
-  text-shadow: 0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000;
+  text-shadow: 0 calc(var(--scale-factor) * 1px) 0 #000, 0 calc(var(--scale-factor) * -1px) 0 #000, calc(var(--scale-factor) * 1px) 0 0 #000, calc(var(--scale-factor) * -1px) 0 0 #000;
   pointer-events: none;
 }
 
@@ -658,12 +683,12 @@
  * outline says "known, not yet reachable"; solid says "go now".
  */
 .z1r-screen[data-coast="true"] {
-  outline: 2px dashed var(--z1r-muted);
-  outline-offset: -2px;
+  outline: calc(var(--scale-factor) * 2px) dashed var(--z1r-muted);
+  outline-offset: calc(var(--scale-factor) * -2px);
 }
 
 .z1r-screen[data-coast-ready="true"] {
-  outline: 2px solid var(--z1r-accent);
+  outline: calc(var(--scale-factor) * 2px) solid var(--z1r-accent);
   animation: z1r-screen-beckon 2.6s ease-in-out infinite;
 }
 
@@ -676,8 +701,8 @@
  * still identifiable when the animation is off.
  */
 .z1r-screen[data-ready="true"] {
-  outline: 2px solid var(--z1r-accent);
-  outline-offset: -2px;
+  outline: calc(var(--scale-factor) * 2px) solid var(--z1r-accent);
+  outline-offset: calc(var(--scale-factor) * -2px);
   animation: z1r-screen-beckon 2.6s ease-in-out infinite;
 }
 
@@ -687,7 +712,7 @@
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--z1r-accent) 70%, transparent);
   }
   50% {
-    box-shadow: 0 0 6px 2px color-mix(in srgb, var(--z1r-accent) 70%, transparent);
+    box-shadow: 0 0 calc(var(--scale-factor) * 6px) calc(var(--scale-factor) * 2px) color-mix(in srgb, var(--z1r-accent) 70%, transparent);
   }
 }
 
@@ -699,7 +724,7 @@
   .z1r-screen[data-ready="true"],
   .z1r-screen[data-coast-ready="true"] {
     animation: none;
-    box-shadow: 0 0 6px 2px color-mix(in srgb, var(--z1r-accent) 70%, transparent);
+    box-shadow: 0 0 calc(var(--scale-factor) * 6px) calc(var(--scale-factor) * 2px) color-mix(in srgb, var(--z1r-accent) 70%, transparent);
   }
 }
 
@@ -712,7 +737,7 @@
 
 .z1r-screen[data-focused="true"] {
   border-color: var(--z1r-accent);
-  border-width: 2px;
+  border-width: calc(var(--scale-factor) * 2px);
 }
 
 .z1r-screen[data-focused="true"] .z1r-screen-region {
@@ -722,8 +747,8 @@
 }
 
 .z1r-map-focus {
-  margin-inline-start: 10px;
-  font-size: var(--z1r-text-xs);
+  margin-inline-start: calc(var(--scale-factor) * 10px);
+  font-size: calc(var(--scale-factor) * var(--z1r-text-xs));
   letter-spacing: 0.04em;
   color: var(--z1r-accent);
 }
@@ -1376,8 +1401,7 @@
  * of which is the icon's own colour.
  */
 .z1r-tool-mark[data-active="true"] {
-  background: var(--z1r-accent);
-  border-color: var(--z1r-accent);
+  background-color: color-mix(in srgb, var(--z1r-accent), transparent 50%);
   outline: 2px solid var(--z1r-text);
   outline-offset: 1px;
 }
@@ -1396,7 +1420,8 @@
   min-inline-size: 9em;
 }
 
-.z1r-mark-level {
+.z1r-mark-level,
+.z1r-mark-warp-option {
   inline-size: var(--spectrum-component-height-75);
   min-block-size: var(--spectrum-component-height-75);
   font: inherit;
@@ -1409,7 +1434,8 @@
   cursor: pointer;
 }
 
-.z1r-mark-stock-option {
+.z1r-mark-stock-option,
+.z1r-mark-rupy-option {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1424,25 +1450,42 @@
   cursor: pointer;
 }
 
+.z1r-mark-warp-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font: inherit;
+  color: var(--z1r-text);
+  background: var(--z1r-field);
+  border: var(--z1r-border-width) solid var(--z1r-border);
+  border-radius: var(--z1r-radius);
+  cursor: pointer;
+}
+
 /*
  * Chosen reads as filled, solid-bordered and bold; unchosen as dimmed with a
  * dashed border. Three channels, none of them hue.
  */
 .z1r-mark-level[data-active="true"],
-.z1r-mark-stock-option[data-active="true"] {
+.z1r-mark-stock-option[data-active="true"],
+.z1r-mark-rupy-option[data-active="true"],
+.z1r-mark-warp-option[data-active="true"] {
   color: var(--z1r-bg);
-  background: var(--z1r-accent);
+  background-color: color-mix(in srgb, var(--z1r-accent), transparent 50%);
   border-color: var(--z1r-accent);
   font-weight: 700;
 }
 
 /* No label to embolden, so the stock buttons carry the ring instead. */
-.z1r-mark-stock-option[data-active="true"] {
+.z1r-mark-stock-option[data-active="true"],
+.z1r-mark-rupy-option[data-active="true"] {
   outline: 2px solid var(--z1r-text);
   outline-offset: 1px;
 }
 
-.z1r-mark-stock-option[data-active="false"] {
+.z1r-mark-stock-option[data-active="false"],
+.z1r-mark-rupy-option[data-active="true"] {
   border-style: dashed;
   opacity: 0.65;
 }
@@ -1727,6 +1770,16 @@
   margin-block-end: 0;
 }
 
+.z1r-cancel-button {
+  margin-inline-start: auto;
+  display: none;
+}
+
+.z1r-map-panel:has(.z1r-screen[data-selected="true"]) .z1r-cancel-button,
+.z1r-map-panel:has(.z1r-map-tools[data-active="true"]) .z1r-cancel-button {
+  display: block;
+}
+
 /*
  * Clearing the map is destructive, so it says so.
  *
@@ -1739,6 +1792,11 @@
   margin-inline-start: auto;
   color: var(--z1r-bad);
   border-color: var(--z1r-bad);
+}
+
+.z1r-map-panel:has(.z1r-screen[data-selected="true"]) .z1r-map-clear,
+.z1r-map-panel:has(.z1r-map-tools[data-active="true"]) .z1r-map-clear {
+  margin-inline-start: inherit;
 }
 
 .z1r-map-clear:hover,
@@ -1764,7 +1822,7 @@
 
 /* Which screen is being edited, or an instruction when none is. */
 .z1r-tool-target {
-  min-inline-size: 6.5em;
+  margin-inline-start: auto;
   font-size: var(--z1r-text-md);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -1800,13 +1858,12 @@
 .z1r-tool-mark[data-armed="true"] {
   outline: 2px dashed var(--z1r-accent);
   outline-offset: 2px;
-  background: var(--z1r-inset);
-  border-color: var(--z1r-accent);
+  background-color: color-mix(in srgb, var(--z1r-accent), transparent 25%);
 }
 
 /* Both at once — armed, and the selected tile already carries it. */
 .z1r-tool-mark[data-armed="true"][data-active="true"] {
-  background: var(--z1r-accent);
+  background-color: color-mix(in srgb, var(--z1r-accent), transparent 25%);
 }
 
 /*
@@ -1815,40 +1872,6 @@
  */
 .z1r-map[data-armed="true"] .z1r-screen {
   cursor: copy;
-}
-
-/* ------------------------------------------------ dungeon numeral + badge */
-
-/*
- * A dungeon's level, drawn large on the left of the cell.
- *
- * This replaces the cave icon, which was identical on all nine and so spent the
- * middle of the cell saying "a dungeon" — something the numeral says anyway.
- * Left-aligned to leave the right for the item badge, so the pair reads as
- * "Level 5, holds the Raft" without either crowding the other.
- *
- * Outlined rather than plated: the terrain behind ranges from near-white sand to
- * near-black cave mouths, and an outline is the only treatment that holds across
- * all of it.
- */
-.z1r-screen-level {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 3px;
-  translate: 0 -50%;
-  z-index: 2;
-  font-size: calc(var(--map-cell-height, 40px) * 0.6);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: var(--z1r-text);
-  text-shadow: 0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
-    1px 1px 0 #000, -1px -1px 0 #000;
-  pointer-events: none;
-}
-
-.z1r-screen-level:empty {
-  display: none;
 }
 
 /*
@@ -1860,13 +1883,36 @@
  */
 .z1r-screen-badge {
   position: absolute;
-  inset-block-start: 1px;
-  inset-inline-end: 1px;
+  inset-block-start: calc(var(--scale-factor) * 1px);
   z-index: 3;
   display: flex;
-  padding: 1px;
+  padding: calc(var(--scale-factor) * 1px);
   border-radius: 50%;
   background: color-mix(in srgb, var(--z1r-bg) 80%, transparent);
+  pointer-events: none;
+}
+
+.z1r-screen-badge.left {
+  inset-inline-start: calc(var(--scale-factor) * 1px);
+}
+
+.z1r-screen-badge.right {
+  inset-inline-end: calc(var(--scale-factor) * 1px);
+}
+
+.z1r-screen[data-mark="dungeon"] .z1r-screen-badge {
+  inset-block-start: auto;
+}
+
+.z1r-screen-badge .z1r-warp-type {
+  display: inline-block;
+  height: calc(var(--scale-factor) * var(--z1r-text-lg));
+  width: calc(var(--scale-factor) * var(--z1r-text-lg));
+  font-family: var(--z1r-font-mono);
+  font-size: calc(var(--scale-factor) * var(--z1r-text-lg));
+  font-weight: 700;
+  line-height: 0.9;
+  color: var(--z1r-text);
   pointer-events: none;
 }
 
@@ -1877,4 +1923,16 @@
 /* Armed, but waiting for a level before it can place anything. */
 .z1r-map-tools[data-waiting="true"] .z1r-tool-target {
   color: var(--z1r-accent);
+}
+
+@media screen and (max-width: 480px) {
+  .z1r-tool-row {
+    gap: 2.5px;
+  }
+
+  .z1r-tool-target {
+    order: -1;
+    width: 100%;
+    margin-inline-start: inherit;
+  }
 }

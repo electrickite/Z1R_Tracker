@@ -191,6 +191,10 @@ export const OVERWORLD_LOCATIONS: readonly LocationDef[] = [
   { id: 'ow.coast', label: 'Coast', kind: 'overworld', note: 'The ladder-only spot on the coast.' },
 ];
 
+export const OVERWORLD_LOCATIONS_BY_ID: ReadonlyMap<string, LocationDef> = new Map(
+  OVERWORLD_LOCATIONS.map((entry) => [entry.id, entry]),
+);
+
 /**
  * Every item location this seed contains, in tracking order.
  *
@@ -308,6 +312,12 @@ export const SHUFFLE_POOL: readonly PoolEntry[] = [
   { id: 'whiteSword', name: 'White Sword', itemId: 'sword', value: 2, sprite: 'item.sword.white' },
 ];
 
+export const OVERWORLD_POOL: readonly PoolEntry[] = [
+  { id: 'blueCandle', name: 'Blue Candle', itemId: 'candle', value: 1, sprite: 'item.candle.blue' },
+  { id: 'letter', name: 'Letter', itemId: 'letter', value: 1, sprite: 'item.letter' },
+  { id: 'woodSword', name: 'Wooden Sword', itemId: 'sword', value: 1, sprite: 'item.sword.wood' },
+];
+
 export const POOL_BY_ID: ReadonlyMap<string, PoolEntry> = new Map(
-  SHUFFLE_POOL.map((entry) => [entry.id, entry]),
+  OVERWORLD_POOL.concat(SHUFFLE_POOL).map((entry) => [entry.id, entry]),
 );

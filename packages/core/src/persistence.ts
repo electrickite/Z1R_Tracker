@@ -23,6 +23,7 @@ import {
   DUNGEON_BLOCKS_BY_ID,
   MARKS_BY_KIND,
   SHOP_STOCK_BY_ID,
+  RUPY_TYPES_BY_ID,
   type MarkKind,
 } from './overworld.js';
 import { OVERWORLD_LOCATIONS, POOL_BY_ID, type SeedSettings } from './seed.js';
@@ -97,6 +98,12 @@ function conformMarks(saved: unknown): Record<string, MarkKind> {
   return out;
 }
 
+function conformStart(saved: unknown): string {
+  if (!saved || typeof saved !== 'string') return '';
+  const validScreen = /^[A-P][1-8]$/;
+  return validScreen.test(saved) ? saved : '';
+}
+
 /**
  * Structural check on per-screen detail, which is entirely new in v6.
  *
@@ -126,17 +133,19 @@ function conformScreenNotes(saved: unknown): Record<string, ScreenNote> {
           .sort()
       : [];
     const item = typeof note.item === 'string' && POOL_BY_ID.has(note.item) ? note.item : '';
+    const rupy = typeof note.rupy === 'string' && RUPY_TYPES_BY_ID.has(note.rupy) ? note.rupy : '';
     // Checked against the real list: an unknown spot id renders as nothing and
     // would sit in the save forever as an invisible entry.
     const spot =
       typeof note.spot === 'string' && OVERWORLD_LOCATIONS.some((l) => l.id === note.spot)
         ? note.spot
         : '';
+    const warp = Number.isInteger(note.warp) ? Math.min(Math.max(note.warp, 0), 4) : 0;
 
-    if (dungeon === 0 && shop.length === 0 && blocks.length === 0 && spot === '' && item === '') {
+    if (dungeon === 0 && shop.length === 0 && blocks.length === 0 && rupy === '' && spot === '' && item === '' && warp === 0) {
       continue;
     }
-    out[screen] = { dungeon, shop, blocks, spot, item };
+    out[screen] = { dungeon, shop, blocks, rupy, spot, item, warp };
   }
   return out;
 }
@@ -207,6 +216,7 @@ export function migrate(raw: unknown): TrackerState | null {
     dungeons: pruneDungeons(base.dungeons, candidate.dungeons),
     marks: conformMarks(candidate.marks),
     screenNotes: conformScreenNotes(candidate.screenNotes),
+    start: conformStart(candidate.start),
     // v1 saves predate seed tracking; merging over the defaults fills in any
     // setting added since without discarding what the save does carry.
     seed: conformSeed(base.seed, candidate.seed),

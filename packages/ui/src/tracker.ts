@@ -26,7 +26,10 @@ import {
   regionForScreen,
   SHOP_STOCK,
   SHOP_STOCK_BY_ID,
+  RUPY_TYPES,
+  RUPY_TYPES_BY_ID,
   SHUFFLE_POOL,
+  OVERWORLD_POOL,
   ITEMS,
   labelFor,
   maxValue,
@@ -79,6 +82,17 @@ const DEFAULT_SECTIONS: readonly TrackerSection[] = [
   'hintlog',
   'map',
 ];
+
+interface ArmedDef {
+  mark: MarkKind | '';
+  level: number;
+  blocks: string[];
+  shop: string[];
+  rupy: string;
+  spot: string;
+  item: string;
+  warp: number;
+}
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -337,6 +351,7 @@ export function mountTracker(root: HTMLElement, options: MountOptions): () => vo
    * most fifteen pixels of width and puts every screen on an exact boundary.
    */
   const applyMapScale = () => {
+    const baseWidth = 1080;
     const map = root.querySelector<HTMLElement>('.z1r-map');
     if (!map) return;
     const gap = Number.parseFloat(getComputedStyle(map).columnGap) || 0;
@@ -344,6 +359,8 @@ export function mountTracker(root: HTMLElement, options: MountOptions): () => vo
     // the columns are actually laid out in.
     const inner = map.clientWidth;
     if (inner <= 0) return;
+
+    const scaleFactor = inner / baseWidth;
 
     const cell = Math.floor((inner - gap * (OVERWORLD_COLUMNS - 1)) / OVERWORLD_COLUMNS);
     if (cell < 8) return;
@@ -355,6 +372,7 @@ export function mountTracker(root: HTMLElement, options: MountOptions): () => vo
     if (map.style.getPropertyValue('--map-cell') !== `${cell}px`) {
       map.style.setProperty('--map-cell', `${cell}px`);
       map.style.setProperty('--map-cell-height', `${height}px`);
+      map.style.setProperty('--scale-factor', `${scaleFactor}`);
     }
   };
 
@@ -486,6 +504,31 @@ function buildMap(
   interactive: boolean,
 ): HTMLElement {
   const { root, body } = section('Overworld', 'z1r-map');
+
+  /*
+   * A marker can also be *armed*, which turns the toolbar into a palette.
+   *
+   * Two ways of working, because a run needs both. Sweeping a region and
+   * writing off a dozen dead ends wants a palette: arm the marker once, then
+   * click tiles. Coming back to one screen to say which level it was and what
+   * turned you back wants the opposite — pick the screen, then edit it.
+   *
+   * Arming does not take the editor away. A stamped tile is also selected, so
+   * the detail rows are already pointing at the tile you just marked and the
+   * level and blockers are right there. That is what makes the two modes one
+   * flow rather than a switch: stamp, refine, stamp the next.
+   */
+  const armed: ArmedDef = {
+    mark: '',
+    level: 0,
+    blocks: [],
+    shop: [],
+    rupy: '',
+    spot: '',
+    item: '',
+    warp: 0,
+  };
+
   // The palette is positioned against this panel.
   root.classList.add('z1r-map-panel');
   body.style.setProperty('--map-columns', String(OVERWORLD_COLUMNS));
@@ -506,6 +549,18 @@ function buildMap(
   body.dataset.regions = 'false';
   heading?.append(regionToggle);
 
+  const hideToggle = el('button', 'z1r-chip-button z1r-hide-toggle', 'Hide');
+  hideToggle.type = 'button';
+  hideToggle.dataset.open = 'false';
+  hideToggle.title = 'Hide screen marks on map';
+  hideToggle.addEventListener('click', () => {
+    const on = hideToggle.dataset.open !== 'true';
+    hideToggle.dataset.open = String(on);
+    body.dataset.hidemarks = String(on);
+  });
+  body.dataset.hidemarks = 'false';
+  heading?.append(hideToggle);
+
   /*
    * Clear every mark in one go.
    *
@@ -518,6 +573,15 @@ function buildMap(
    * those here would make this a second Reset wearing a friendlier label.
    */
   if (interactive) {
+    const cancelButton = el('button', 'z1r-chip-button z1r-cancel-button', 'Cancel');
+    cancelButton.type = 'button';
+    cancelButton.title = 'Cancel current map operation and screen selection';
+    cancelButton.addEventListener('click', () => {
+      setArmed('');
+      selectScreen('');
+    });
+    heading?.append(cancelButton);
+
     const clear = el('button', 'z1r-chip-button z1r-map-clear', 'Clear');
     clear.type = 'button';
     clear.title = 'Remove every mark from the map. Items and Triforce are untouched.';
@@ -583,23 +647,6 @@ function buildMap(
    */
   let selected = '';
 
-  /*
-   * A marker can also be *armed*, which turns the toolbar into a palette.
-   *
-   * Two ways of working, because a run needs both. Sweeping a region and
-   * writing off a dozen dead ends wants a palette: arm the marker once, then
-   * click tiles. Coming back to one screen to say which level it was and what
-   * turned you back wants the opposite — pick the screen, then edit it.
-   *
-   * Arming does not take the editor away. A stamped tile is also selected, so
-   * the detail rows are already pointing at the tile you just marked and the
-   * level and blockers are right there. That is what makes the two modes one
-   * flow rather than a switch: stamp, refine, stamp the next.
-   */
-  let armed: MarkKind | '' = '';
-  /** Which level the armed Dungeon marker will place. 0 means none chosen. */
-  let armedLevel = 0;
-
   const highlightSelection = () => {
     for (const cell of body.querySelectorAll<HTMLElement>('.z1r-screen')) {
       cell.dataset.selected = String(cell.dataset.screen === selected);
@@ -616,20 +663,39 @@ function buildMap(
 
   /** A tile click: stamp the armed marker if there is one, and edit the tile. */
   const touchScreen = (screen: string) => {
-    if (!armed) {
+    if (!armed.mark) {
       selectScreen(screen);
       return;
     }
     // A dungeon needs its number first. You learn which level it is by walking
     // into it, so by the time you are marking one you know — and an unnumbered
     // dungeon marker is a note to yourself that says nothing useful.
-    if (armed === 'dungeon' && !armedLevel) return;
+    if (armed.mark === 'dungeon' && !armed.level) return;
+    if (armed.mark === 'warp' && !armed.warp) return;
 
-    if (armed === 'dungeon') {
-      store.dispatch({ type: 'placeDungeon', screen, level: armedLevel });
-    } else {
-      store.dispatch({ type: 'setMark', screen, mark: armed });
+    switch (armed.mark) {
+      case 'dungeon':
+        store.dispatch({ type: 'placeDungeon', screen, level: armed.level, blocks: [...armed.blocks] });
+        break;
+      case 'rupy':
+        store.dispatch({ type: 'placeRupy', screen, rupy: armed.rupy });
+        break;
+      case 'warp':
+        store.dispatch({ type: 'placeWarp', screen, warp: armed.warp });
+        break;
+      case 'start':
+        store.dispatch({ type: 'placeStart', screen });
+        break;
+      case 'shop':
+        store.dispatch({ type: 'placeShop', screen, shop: [...armed.shop] });
+        break;
+      case 'item':
+        store.dispatch({ type: 'placeItem', screen, item: armed.item, spot: armed.spot });
+        break;
+      default:
+        store.dispatch({ type: 'setMark', screen, mark: armed.mark });
     }
+
     // Selected, not toggled — clicking an already-selected tile while armed
     // should re-stamp it, not drop the selection out from under the detail rows.
     selected = screen;
@@ -638,9 +704,17 @@ function buildMap(
   };
 
   const setArmed = (kind: MarkKind | '') => {
-    armed = kind;
-    if (kind !== 'dungeon') armedLevel = 0;
-    body.dataset.armed = String(!!armed);
+    armed.mark = kind;
+    if (kind !== 'dungeon') {
+      armed.level = 0;
+      armed.blocks = [];
+    }
+    if (kind !== 'shop') armed.shop = [];
+    if (kind !== 'rupy') armed.rupy = '';
+    if (kind !== 'spot') armed.spot = '';
+    if (kind !== 'item') armed.item = '';
+    if (kind !== 'warp') armed.warp = 0;
+    body.dataset.armed = String(!!armed.mark);
     syncToolbar(store.getState());
   };
 
@@ -666,59 +740,77 @@ function buildMap(
     return row;
   };
 
-  /** Names the screen being edited, so the toolbar is never ambiguous. */
-  const target = el('span', 'z1r-tool-target');
-  kindRow.append(target);
-
   const syncToolbar = (state: TrackerState) => {
     const mark = selected ? (state.marks[selected] ?? 'none') : 'none';
     const note = selected ? state.screenNotes[selected] : undefined;
 
-    toolbar.dataset.active = String(!!selected || !!armed);
-    const armedName = armed ? MARKS_BY_KIND.get(armed)?.name : '';
-    const needsLevel = armed === 'dungeon' && !armedLevel;
+    toolbar.dataset.active = String(!!selected || !!armed.mark);
+    const armedName = armed.mark ? MARKS_BY_KIND.get(armed.mark)?.name : '';
+    const needsNumber = 
+      (armed.mark === 'dungeon' && !armed.level)
+      || (armed.mark === 'warp' && !armed.warp);
     // Says what the next click does, in the order the toolbar reads: pick the
     // marker, pick the level, then place it.
-    target.textContent = needsLevel
-      ? 'Pick a level'
-      : armed
-        ? `Placing ${armed === 'dungeon' ? `Level ${armedLevel}` : armedName}`
+    let armedNumberType = null;
+    let armedNumber = 0;
+    if (armed.mark === 'dungeon') {
+      armedNumberType = 'Level';
+      armedNumber = armed.level;
+    } else if (armed.mark === 'warp') {
+      armedNumberType = 'Warp';
+      armedNumber = armed.warp;
+    }
+    target.textContent = needsNumber
+      ? `Pick a ${armedNumberType}`
+      : armed.mark
+        ? `Placing ${armedNumberType ? `${armedNumberType} ${armedNumber}` : armedName}`
         : selected || 'Pick a screen';
-    toolbar.dataset.waiting = String(needsLevel);
+    toolbar.dataset.waiting = String(needsNumber);
 
     for (const button of kindButtons) {
       const kind = button.dataset.mark as MarkKind;
+      const isStart = state.start && state.start === selected;
       /*
        * Two states, kept apart on purpose. `active` is "the selected tile is
        * already this", `armed` is "the next tile you click becomes this".
        * Conflating them would make the toolbar unable to say whether a click
        * is about to change anything.
        */
-      const active = !!selected && kind === mark;
+      const active = !!selected && (kind === mark || (kind === 'start' && isStart));
       button.dataset.active = String(active);
-      button.dataset.armed = String(armed === kind);
-      button.setAttribute('aria-pressed', String(armed === kind || active));
+      button.dataset.armed = String(armed.mark === kind);
+      button.setAttribute('aria-pressed', String(armed.mark === kind || active));
       // Never disabled now: with nothing selected the buttons still arm, which
       // is how a palette is supposed to work.
       button.disabled = false;
     }
     // Shown for whichever the toolbar is describing: the marker being armed, or
     // the tile being edited.
-    const showing = armed || (selected ? mark : '');
+    const showing = armed.mark || (selected ? mark : '');
     for (const { row, forKind } of detailRows) row.hidden = forKind !== showing;
     for (const control of [spotSelect, itemSelect]) control.disabled = !selected && !armed;
 
     for (const button of levelButtons) {
       // While arming, the buttons show what is about to be placed; otherwise
       // they show what the selected tile already is.
-      const shown = armed === 'dungeon' ? armedLevel : (note?.dungeon ?? 0);
+      const shown = armed.mark === 'dungeon' ? armed.level : (note?.dungeon ?? 0);
       button.dataset.active = String(Number(button.dataset.level) === shown);
     }
     for (const button of stockButtons) {
-      button.dataset.active = String(!!note?.shop.includes(button.dataset.stock ?? ''));
+      const shown = armed.mark === 'shop' ? armed.shop : (note?.shop ?? []);
+      button.dataset.active = String(!!shown.includes(button.dataset.stock ?? ''));
+    }
+    for (const button of rupyButtons) {
+      const shown = armed.mark === 'rupy' ? armed.rupy : (note?.rupy ?? '');
+      button.dataset.active = String(shown == button.dataset.rupy ?? '');
+    }
+    for (const button of warpButtons) {
+      const shown = armed.mark === 'warp' ? armed.warp : (note?.warp ?? 0);
+      button.dataset.active = String(Number(button.dataset.warp) === shown);
     }
     for (const button of blockButtons) {
-      button.dataset.active = String(!!note?.blocks.includes(button.dataset.block ?? ''));
+      const shown = armed.mark === 'dungeon' ? armed.blocks : (note?.blocks ?? []);
+      button.dataset.active = String(!!shown.includes(button.dataset.block ?? ''));
     }
     if (document.activeElement !== spotSelect) spotSelect.value = note?.spot ?? '';
     if (document.activeElement !== itemSelect) itemSelect.value = note?.item ?? '';
@@ -732,7 +824,7 @@ function buildMap(
     if (mark.sprite) {
       button.append(createSprite(resolver, mark.sprite, { size: 18, label: mark.name }));
     } else {
-      button.append(el('span', 'z1r-tool-mark-clear', '—'));
+      button.append(el('span', 'z1r-tool-mark-clear', '◯'));
     }
     /*
      * Icon only. The name rides on `title` and `aria-label` instead — the row
@@ -751,11 +843,16 @@ function buildMap(
        * button do two different things depending on invisible state and was
        * impossible to explain. One job: choose what you are about to place.
        */
-      setArmed(armed === mark.kind ? '' : mark.kind);
+      setArmed(armed.mark === mark.kind ? '' : mark.kind);
     });
     kindButtons.push(button);
     kindRow.append(button);
   }
+
+    /** Names the screen being edited, so the toolbar is never ambiguous. */
+  const target = el('span', 'z1r-tool-target');
+  target.setAttribute('aria-live', 'polite');
+  kindRow.append(target);
 
   /*
    * Which level this is. 1-9 only.
@@ -772,15 +869,15 @@ function buildMap(
     button.dataset.level = String(level);
     button.title = `Level ${level}`;
     button.addEventListener('click', () => {
-      if (armed === 'dungeon') {
+      if (armed.mark === 'dungeon') {
         // Arming half of the flow: marker, then number, then click the map.
-        armedLevel = armedLevel === level ? 0 : level;
+        armed.level = armed.level === level ? 0 : level;
         syncToolbar(store.getState());
         return;
       }
       // Editing a tile already on the map. Goes through `placeDungeon` too, so
       // renumbering one still moves the level off wherever it used to be.
-      if (selected) store.dispatch({ type: 'placeDungeon', screen: selected, level });
+      if (selected) store.dispatch({ type: 'placeDungeon', screen: selected, level, blocks: [...armed.blocks] });
     });
     levelButtons.push(button);
     levelRow.append(button);
@@ -804,6 +901,16 @@ function buildMap(
     button.setAttribute('aria-label', block.name);
     button.append(createSprite(resolver, block.sprite, { size: 18, label: block.name }));
     button.addEventListener('click', () => {
+      if (armed.mark === 'dungeon') {
+        const armedIndex = armed.blocks.indexOf(block.id);
+        if (armedIndex === -1) {
+          armed.blocks.push(block.id);
+        } else {
+          armed.blocks.splice(armedIndex, 1);
+        }
+        syncToolbar(store.getState());
+        return;
+      }
       if (selected) store.dispatch({ type: 'toggleDungeonBlock', screen: selected, block: block.id });
     });
     blockButtons.push(button);
@@ -821,6 +928,16 @@ function buildMap(
     button.setAttribute('aria-label', stock.name);
     button.append(createSprite(resolver, stock.sprite, { size: 18, label: stock.name }));
     button.addEventListener('click', () => {
+      if (armed.mark === 'shop') {
+        const armedIndex = armed.shop.indexOf(stock.id);
+        if (armedIndex === -1) {
+          armed.shop.push(stock.id);
+        } else {
+          armed.shop.slice(armedIndex, 1);
+        }
+        syncToolbar(store.getState());
+        return;
+      }
       if (selected) store.dispatch({ type: 'toggleShopStock', screen: selected, stock: stock.id });
     });
     stockButtons.push(button);
@@ -848,7 +965,14 @@ function buildMap(
     option.textContent = location.label;
     spotSelect.append(option);
   }
-  spotSelect.addEventListener('change', () => patchSelected({ spot: spotSelect.value }));
+  spotSelect.addEventListener('change', () => {
+    if (armed.mark === 'item') {
+      armed.spot = spotSelect.value;
+      syncToolbar(store.getState());
+      return;
+    }
+    patchSelected({ spot: spotSelect.value });
+  });
 
   const itemSelect = document.createElement('select');
   itemSelect.className = 'z1r-input z1r-tool-select';
@@ -857,21 +981,78 @@ function buildMap(
   unknownItem.value = '';
   unknownItem.textContent = 'Item unknown';
   itemSelect.append(unknownItem);
+  itemSelect.append(document.createElement('hr'));
+  for (const entry of OVERWORLD_POOL) {
+    const option = document.createElement('option');
+    option.value = entry.id;
+    option.textContent = entry.name;
+    itemSelect.append(option);
+  }
+  itemSelect.append(document.createElement('hr'));
   for (const entry of SHUFFLE_POOL) {
     const option = document.createElement('option');
     option.value = entry.id;
     option.textContent = entry.name;
     itemSelect.append(option);
   }
-  itemSelect.addEventListener('change', () => patchSelected({ item: itemSelect.value }));
+  itemSelect.addEventListener('change', () => {
+    if (armed.mark === 'item') {
+      armed.item = itemSelect.value;
+      syncToolbar(store.getState());
+      return;
+    }
+    patchSelected({ item: itemSelect.value });
+  });
   itemRow.append(spotSelect, itemSelect);
+
+  /* Type of rupy screen. Single Select */
+  const rupyRow = detailRow('rupy', 'Rupy type');
+  const rupyButtons: HTMLButtonElement[] = [];
+  for (const type of RUPY_TYPES) {
+    const button = el('button', 'z1r-mark-rupy-option');
+    button.type = 'button';
+    button.dataset.rupy = type.id;
+    button.title = type.name;
+    button.setAttribute('aria-label', type.name);
+    button.append(createSprite(resolver, type.sprite, { size: 18, label: type.name }));
+    button.addEventListener('click', () => {
+      if (armed.mark === 'rupy') {
+        armed.rupy = armed.rupy === type.id ? '' : type.id;
+        syncToolbar(store.getState());
+        return;
+      }
+      patchSelected({ rupy: type.id });
+    });
+    rupyButtons.push(button);
+    rupyRow.append(button);
+  }
+
+  /* Warp hall number. Single select. */
+  const warpRow = detailRow('warp', 'Warp number');
+  const warpButtons: HTMLButtonElement[] = [];
+  for (const warp of [1, 2, 3, 4]) {
+    const button = el('button', 'z1r-mark-warp-option');
+    button.type = 'button';
+    button.dataset.warp = warp;
+    button.textContent = warp;
+    button.addEventListener('click', () => {
+      if (armed.mark === 'warp') {
+        armed.warp = armed.warp === warp ? 0 : warp;
+        syncToolbar(store.getState());
+        return;
+      }
+      if (selected) store.dispatch({ type: 'placeWarp', screen: selected, warp });
+    });
+    warpButtons.push(button);
+    warpRow.append(button);
+  }
 
   // Escape lets go of the screen without having to find somewhere safe to click.
   body.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
     // The armed marker first: it is the state that changes what a click does,
     // so it is the one you most urgently want a way out of.
-    if (armed) {
+    if (armed.mark) {
       setArmed('');
       return;
     }
@@ -905,18 +1086,8 @@ function buildMap(
         // opening the palette to pick "Unmarked".
         cell.addEventListener('contextmenu', (event) => {
           event.preventDefault();
+          setArmed('');
           store.dispatch({ type: 'setMark', screen: id, mark: 'none' });
-        });
-        // Arrow keys still step through the marks without opening anything,
-        // which is quicker than the palette when tagging a run of screens.
-        cell.addEventListener('keydown', (event) => {
-          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-          event.preventDefault();
-          store.dispatch({
-            type: 'cycleMark',
-            screen: id,
-            direction: event.key === 'ArrowRight' ? 1 : -1,
-          });
         });
       }
 
@@ -951,18 +1122,10 @@ function buildMap(
       // as two-letter tags. Both are text, so they survive being shrunk into a
       // dock and read without depending on colour.
       const detail = el('span', 'z1r-screen-detail');
-      /*
-       * A dungeon draws its level as a large numeral instead of an icon.
-       *
-       * The cave icon was the same on all nine and told you only "a dungeon",
-       * which the numeral says too — so it was spending the middle of the cell
-       * to repeat itself. The number sits left, leaving the right free for the
-       * item badge, and the pair reads as "Level 5, holds the Raft" at a glance.
-       */
-      const numeral = el('span', 'z1r-screen-level');
       // What is known to be inside, from the location slots — see `dungeonItems`.
-      const badge = el('span', 'z1r-screen-badge');
-      cell.append(terrain, code, slot, numeral, badge, detail);
+      const badge1 = el('span', 'z1r-screen-badge left');
+      const badge2 = el('span', 'z1r-screen-badge right');
+      cell.append(terrain, code, slot, badge1, badge2, detail);
 
       let renderedMap: string | null = null;
       patches.push(() => {
@@ -1003,26 +1166,67 @@ function buildMap(
             ? dungeonItems(state, note.dungeon).map((id) => POOL_BY_ID.get(id)).filter(Boolean)
             : [];
 
-        const markKey = `${mark}|${held?.sprite ?? ''}|${inside.map((e) => e!.sprite).join(',')}|${note?.dungeon ?? 0}`;
+        const stockItem = (mark === 'shop' && note?.shop.length)
+          ? SHOP_STOCK_BY_ID.get(note.shop[0])
+          : null;
+
+        const rupyType = (mark === 'rupy' && note?.rupy)
+          ? RUPY_TYPES_BY_ID.get(note.rupy)
+          : null;
+
+        const warpNumber = (mark === 'warp' && note?.warp)
+          ? parseInt(note.warp)
+          : 0;
+
+        const isStart = state.start === id;
+        cell.dataset.start = String(isStart);
+
+        const markKey = `${mark}|${held?.sprite ?? ''}|${inside.map((e) => e!.sprite).join(',')}|${note?.dungeon ?? 0}|${stockItem?.sprite ?? ''}|${rupyType?.id ?? ''}|${warpNumber}`;
         renderedMark = memoise(renderedMark, markKey, () => {
           cell.dataset.mark = mark;
           cell.style.setProperty('--mark-color', def?.color ?? 'transparent');
 
           // A dungeon is its number; every other mark is its icon.
-          numeral.textContent = mark === 'dungeon' && note?.dungeon ? String(note.dungeon) : '';
+          const dungeonNumber = mark === 'dungeon' && note?.dungeon ? String(note.dungeon) : null;
           const sprite = mark === 'dungeon' ? undefined : (held?.sprite ?? def?.sprite);
-          if (!sprite) slot.replaceChildren();
-          else {
+          if (dungeonNumber) {
+            slot.innerHTML = `<span>${dungeonNumber}</span>`;
+          } else if (!sprite) {
+            slot.replaceChildren();
+          } else {
             slot.replaceChildren(
               createSprite(resolver, sprite, { size: 18, label: held?.name ?? def?.name }),
             );
           }
 
-          // Only the first: two icons in a 70px cell is a smudge, and the rest
-          // are in the tooltip and the Locations panel.
-          const first = inside[0];
-          if (!first) badge.replaceChildren();
-          else badge.replaceChildren(createSprite(resolver, first.sprite, { size: 16, label: first.name }));
+          // Only the first two item icons
+          if (inside.length == 0 && !stockItem) {
+            badge1.replaceChildren();
+            badge2.replaceChildren();
+          }
+          if (stockItem) {
+            badge2.replaceChildren(
+              createSprite(resolver, stockItem.sprite, { size: 16, label: stockItem.name })
+            );
+          }
+          if (rupyType) {
+            badge2.replaceChildren(
+              createSprite(resolver, rupyType.sprite, { size: 16, label: rupyType.name })
+            );
+          }
+          if (warpNumber) {
+            badge2.innerHTML = `<span class="z1r-warp-type">${warpNumber}</span>`;;
+          }
+          if (inside.length >= 1) {
+            badge1.replaceChildren(
+              createSprite(resolver, inside[0].sprite, { size: 16, label: inside[0].name })
+            );
+          }
+          if (inside.length > 1) {
+            badge2.replaceChildren(
+              createSprite(resolver, inside[1].sprite, { size: 16, label: inside[1].name })
+            );
+          }
         });
         const isCoast = note?.spot === COAST_SPOT_ID;
         // The coast ledge is reachable the moment the Ladder is in hand — and
@@ -1041,11 +1245,14 @@ function buildMap(
           // `blocks` out meant a dungeon's tags showed up in the tooltip and
           // never on the cell, because the memo saw no reason to redraw.
           note?.blocks.join('') ?? '',
+          note?.rupy ?? '',
           note?.spot ?? '',
+          note?.warp ?? 0,
           note?.item ?? '',
           isCoast,
           coastReady,
           level9Ready,
+          isStart,
         ].join('|');
         renderedDetail = memoise(renderedDetail, detailKey, () => {
           cell.dataset.coast = String(isCoast);
@@ -1064,26 +1271,11 @@ function buildMap(
               .map((stock) => SHOP_STOCK_BY_ID.get(stock)?.code ?? '')
               .join(' ');
           } else if (mark === 'item') {
-            /*
-             * The contents win over the name of the spot. Once you know the
-             * White Sword cave holds the Raft, "RA" is what you are scanning
-             * the map for; that it is the White Sword cave is in the tooltip
-             * and rarely what you need at a glance.
-             */
-            /*
-             * The sprite above already says *what* it is, so the label says
-             * *where*: "CO" under a boomerang is the coast item, which is the
-             * pair you are actually scanning for. Falls back to the item when
-             * the spot is unnamed, and to a bare `?` when neither is known yet.
-             */
             const spot = note?.spot
               ? OVERWORLD_LOCATIONS.find((l) => l.id === note.spot)?.label
               : '';
-            const itemName = note?.item ? POOL_BY_ID.get(note.item)?.name : '';
-            detail.textContent = shortCode(spot) || shortCode(itemName) || '?';
+            detail.textContent = shortCode(spot);
           } else {
-            // `visited` says everything in its icon — a screen with nothing on
-            // it needs no label, and the map is mostly these by the end.
             detail.textContent = '';
           }
           detail.hidden = detail.textContent === '';
@@ -1100,6 +1292,7 @@ function buildMap(
 
         const parts = [id];
         if (region) parts.push(region.name);
+        if (isStart) parts.push('Start');
         if (mark === 'dungeon') {
           parts.push(note?.dungeon ? `Level ${note.dungeon}` : 'Dungeon (unidentified)');
           if (inside.length) parts.push(`holds ${inside.map((entry) => entry!.name).join(', ')}`);
@@ -1119,6 +1312,15 @@ function buildMap(
           if (isCoast) {
             parts.push(coastReady ? 'Ladder held — reachable now' : 'needs the Ladder');
           }
+        } else if (mark === 'rupy') {
+          parts.push('Rupy');
+          const rupyType = RUPY_TYPES_BY_ID.get(note?.rupy);
+          if (rupyType) parts.push(rupyType.name);
+        } else if (mark === 'warp') {
+          const warpNumber = parseInt(note?.warp ?? 0);
+          parts.push(warpNumber > 0 ? `Warp ${warpNumber}` : 'Warp');
+        } else if (mark === 'start') {
+          parts.push('Start');
         } else if (def && mark !== 'none') {
           parts.push(def.name);
         }

@@ -20,7 +20,7 @@ export function spriteManifest() {
   return {
     name: 'z1r-sprite-manifest',
     configureServer(server) {
-      server.middlewares.use('/sprites.json', (_req, res) => {
+      server.middlewares.use(join(server.config.base, 'sprites.json'), (_req, res) => {
         res.setHeader('content-type', 'application/json');
         // Read per request so manifest edits show up without a restart.
         res.end(readFileSync(MANIFEST, 'utf8'));
@@ -66,7 +66,7 @@ export function localMaps() {
   return {
     name: 'z1r-local-maps',
     configureServer(server) {
-      server.middlewares.use('/maps', (req, res, next) => {
+      server.middlewares.use(join(server.config.base, 'maps'), (req, res, next) => {
         const name = (req.url ?? '').replace(/^\//, '').split('?')[0];
         if (!name || name.includes('..')) return next();
         try {
