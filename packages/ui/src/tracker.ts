@@ -217,6 +217,61 @@ function wireCollapsing(root: HTMLElement): void {
   }
 }
 
+/*
+ * Give the map whole-pixel cells.
+ *
+ * `1fr` columns share out the remainder, so sixteen of them in a panel that
+ * is not a multiple of sixteen produce fractional widths — 54.4px, say. The
+ * terrain image is then positioned as a percentage of that and lands on
+ * half-pixel boundaries, which the renderer resolves by blending. That is
+ * soft however the image is sampled, and it is why the map still looked
+ * blurry after switching to nearest-neighbour.
+ *
+ * Rounding the cell down to a whole number and centring the grid costs at
+ * most fifteen pixels of width and puts every screen on an exact boundary.
+ */
+const minMapWidth = 1080;
+const maxMapWidth = 6000;
+function applyMapScale(map: HTMLElement, delta: number = 0, clientX: number = -1, clientY: number = -1) {
+  if (!map) return;
+  const gap = Number.parseFloat(getComputedStyle(map).columnGap) || 0;
+  // `clientWidth` excludes the border and includes padding, which is the box
+  // the columns are actually laid out in.
+  // map.clientWidth
+  let mapWidth = parseFloat(map.dataset.mapwidth);
+  const originalScale = mapWidth / minMapWidth;
+  mapWidth += delta;
+  if (mapWidth < minMapWidth) mapWidth = minMapWidth;
+  if (mapWidth > maxMapWidth) mapWidth = maxMapWidth;
+  map.dataset.mapwidth = mapWidth;
+  document.querySelector('.z1r-map-zoom').value = mapWidth;
+  const scale = mapWidth / minMapWidth;
+
+  const cell = Math.floor((mapWidth - gap * (OVERWORLD_COLUMNS - 1)) / OVERWORLD_COLUMNS);
+  if (cell < 8) return;
+  // Height rounded independently rather than left to `aspect-ratio`, which
+  // would reintroduce a fraction on the other axis.
+  const height = Math.max(6, Math.round((cell * 11) / 16));
+
+  // Compare before writing, or this re-enters the observer that calls it.
+  if (map.style.getPropertyValue('--map-cell') !== `${cell}px`) {
+    map.style.setProperty('--map-cell', `${cell}px`);
+    map.style.setProperty('--map-cell-height', `${height}px`);
+    map.style.setProperty('--scale-factor', `${scale}`);
+  }
+
+  if (clientX >= 0 && clientY >= 0) {
+    const wrap = map.parentElement;
+    const rect = wrap.getBoundingClientRect();
+    const mouseX = clientX - rect.left;
+    const mouseY = clientY - rect.top;
+    const contentX = (mouseX + wrap.scrollLeft) / originalScale;
+    const contentY = (mouseY + wrap.scrollTop) / originalScale;
+    wrap.scrollLeft = contentX * scale - mouseX;
+    wrap.scrollTop = contentY * scale - mouseY;
+  }
+}
+
 export function mountTracker(root: HTMLElement, options: MountOptions): () => void {
   const {
     store,
@@ -337,49 +392,10 @@ export function mountTracker(root: HTMLElement, options: MountOptions): () => vo
     }
   };
 
-  /*
-   * Give the map whole-pixel cells.
-   *
-   * `1fr` columns share out the remainder, so sixteen of them in a panel that
-   * is not a multiple of sixteen produce fractional widths — 54.4px, say. The
-   * terrain image is then positioned as a percentage of that and lands on
-   * half-pixel boundaries, which the renderer resolves by blending. That is
-   * soft however the image is sampled, and it is why the map still looked
-   * blurry after switching to nearest-neighbour.
-   *
-   * Rounding the cell down to a whole number and centring the grid costs at
-   * most fifteen pixels of width and puts every screen on an exact boundary.
-   */
-  const applyMapScale = () => {
-    const baseWidth = 1080;
-    const map = root.querySelector<HTMLElement>('.z1r-map');
-    if (!map) return;
-    const gap = Number.parseFloat(getComputedStyle(map).columnGap) || 0;
-    // `clientWidth` excludes the border and includes padding, which is the box
-    // the columns are actually laid out in.
-    const inner = map.clientWidth;
-    if (inner <= 0) return;
-
-    const scaleFactor = inner / baseWidth;
-
-    const cell = Math.floor((inner - gap * (OVERWORLD_COLUMNS - 1)) / OVERWORLD_COLUMNS);
-    if (cell < 8) return;
-    // Height rounded independently rather than left to `aspect-ratio`, which
-    // would reintroduce a fraction on the other axis.
-    const height = Math.max(6, Math.round((cell * 11) / 16));
-
-    // Compare before writing, or this re-enters the observer that calls it.
-    if (map.style.getPropertyValue('--map-cell') !== `${cell}px`) {
-      map.style.setProperty('--map-cell', `${cell}px`);
-      map.style.setProperty('--map-cell-height', `${height}px`);
-      map.style.setProperty('--scale-factor', `${scaleFactor}`);
-    }
-  };
-
   const applyLayout = () => {
     applyWidthBand();
     balanceItemGrids();
-    applyMapScale();
+    applyMapScale(root.querySelector<HTMLElement>('.z1r-map'));
   };
   /*
    * Folding is for the dock and the page, never the overlay: a browser source
@@ -504,6 +520,7 @@ function buildMap(
   interactive: boolean,
 ): HTMLElement {
   const { root, body } = section('Overworld', 'z1r-map');
+  body.dataset.mapwidth = minMapWidth;
 
   /*
    * A marker can also be *armed*, which turns the toolbar into a palette.
@@ -646,6 +663,7 @@ function buildMap(
    * that was worth keeping: it never covers the map and never scrolls the page.
    */
   let selected = '';
+  let selectedCell = null;
 
   const highlightSelection = () => {
     for (const cell of body.querySelectorAll<HTMLElement>('.z1r-screen')) {
@@ -653,10 +671,15 @@ function buildMap(
     }
   };
 
-  const selectScreen = (screen: string) => {
+  const selectScreen = (screen: string, force: boolean = false) => {
     // Clicking the selected screen again lets go of it, so there is a way out
     // that is not "find somewhere harmless to click".
-    selected = selected === screen ? '' : screen;
+    if (force) {
+      selected = screen;
+    } else {
+      selected = selected === screen ? '' : screen;
+    }
+    selectedCell = selected ? body.querySelector<HTMLElement>(`.z1r-screen[data-screen="${selected}"]`) : null;
     highlightSelection();
     syncToolbar(store.getState());
   };
@@ -698,24 +721,30 @@ function buildMap(
 
     // Selected, not toggled — clicking an already-selected tile while armed
     // should re-stamp it, not drop the selection out from under the detail rows.
-    selected = screen;
-    highlightSelection();
-    syncToolbar(store.getState());
+    selectScreen(screen, true);
   };
 
   const setArmed = (kind: MarkKind | '') => {
+    const state = store.getState();
+    const mark = selected ? (state.marks[selected] ?? 'none') : 'none';
+    const note = selected ? state.screenNotes[selected] : undefined;
+
     armed.mark = kind;
-    if (kind !== 'dungeon') {
+    if (kind === 'dungeon' && note) {
+      armed.level = note.dungeon;
+      armed.blocks = note.blocks;
+    } else {
       armed.level = 0;
       armed.blocks = [];
     }
-    if (kind !== 'shop') armed.shop = [];
-    if (kind !== 'rupy') armed.rupy = '';
-    if (kind !== 'spot') armed.spot = '';
-    if (kind !== 'item') armed.item = '';
-    if (kind !== 'warp') armed.warp = 0;
+    armed.shop = kind === 'shop' && mark === 'shop' && note ? note.shop : [];
+    armed.rupy = kind === 'rupy' && mark === 'rupy' && note ? note.rupy : '';
+    armed.spot = kind === 'spot' && mark === 'spot' && note ? note.spot : '';
+    armed.item = kind === 'item' && mark === 'item' && note ? note.item : '';
+    armed.warp = kind === 'warp' && mark === 'warp' && note ? note.warp : 0;
     body.dataset.armed = String(!!armed.mark);
-    syncToolbar(store.getState());
+    if (armed.mark) selectScreen('');
+    syncToolbar(state);
   };
 
   const patchSelected = (patch: Partial<ScreenNote>) => {
@@ -764,7 +793,7 @@ function buildMap(
       ? `Pick a ${armedNumberType}`
       : armed.mark
         ? `Placing ${armedNumberType ? `${armedNumberType} ${armedNumber}` : armedName}`
-        : selected || 'Pick a screen';
+        : selectedCell?.title || 'Pick a screen';
     toolbar.dataset.waiting = String(needsNumber);
 
     for (const button of kindButtons) {
@@ -786,10 +815,12 @@ function buildMap(
     }
     // Shown for whichever the toolbar is describing: the marker being armed, or
     // the tile being edited.
-    const showing = armed.mark || (selected ? mark : '');
+    const showing = armed.mark;
     for (const { row, forKind } of detailRows) row.hidden = forKind !== showing;
-    for (const control of [spotSelect, itemSelect]) control.disabled = !selected && !armed;
+    for (const control of [spotSelect, itemSelect]) control.disabled = armed.mark !== 'item' ;
 
+      console.log('Armed', armed);
+      console.log('Note', note);
     for (const button of levelButtons) {
       // While arming, the buttons show what is about to be placed; otherwise
       // they show what the selected tile already is.
@@ -1324,12 +1355,89 @@ function buildMap(
         } else if (def && mark !== 'none') {
           parts.push(def.name);
         }
-        cell.title = parts.join(' — ');
+        cell.title = parts.join(' - ');
       });
 
       body.append(cell);
     }
   }
+
+  const mapWrap = el('div', 'z1r-map-wrap');
+  root.append(mapWrap);
+  mapWrap.appendChild(body);
+
+  const zoomSlider = el('input', 'z1r-map-zoom');
+  zoomSlider.type = 'range';
+  zoomSlider.min = minMapWidth;
+  zoomSlider.max = maxMapWidth;
+  zoomSlider.value = body.dataset.mapwidth;
+  zoomSlider.setAttribute('aria-label', 'Map zoom');
+  zoomSlider.addEventListener('change', () => {
+    body.dataset.mapwidth = zoomSlider.value;
+    applyMapScale(body, 0);
+  });
+  zoomSlider.addEventListener('input', () => {
+    body.dataset.mapwidth = zoomSlider.value;
+    applyMapScale(body, 0);
+  });
+  const zoomWrapper = el('div', 'z1r-map-zoom-wrap');
+  zoomWrapper.append(zoomSlider);
+  document.querySelector('footer').prepend(zoomWrapper);
+
+  let initialDistance = 0;
+
+  const PIXELS_PER_LINE = 16;
+  const PIXELS_PER_PAGE = 800;
+  const PIXEL_SCALE_FACTOR = 10;
+
+  mapWrap.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        initialDistance = getDistance(e.touches[0], e.touches[1]);
+      }
+  });
+
+  mapWrap.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const clientX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const clientY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+        const scale = (currentDistance - initialDistance) * PIXEL_SCALE_FACTOR;
+        initialDistance = currentDistance;
+        applyMapScale(body, scale, clientX, clientY);
+      }
+  });
+
+  function getDistance(touch1, touch2) {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  mapWrap.addEventListener('wheel', (event) => {
+    if (event.ctrlKey) {
+      event.preventDefault();
+
+      let scale = 0;
+      switch (event.deltaMode) {
+        case WheelEvent.DOM_DELTA_LINE:
+          scale = event.deltaY * PIXELS_PER_LINE;
+          break;
+        case WheelEvent.DOM_DELTA_PAGE:
+          scale = event.deltaY * PIXELS_PER_PAGE;
+          break;
+        case WheelEvent.DOM_DELTA_PIXEL:
+        default:
+          scale = event.deltaY;
+          break;
+      }
+      scale = -(scale * PIXEL_SCALE_FACTOR);
+      if (scale != 0) {
+        applyMapScale(body, scale, event.clientX, event.clientY);
+      }
+    }
+  }, { passive: false });
 
   return root;
 }

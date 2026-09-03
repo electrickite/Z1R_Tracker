@@ -502,6 +502,11 @@
 
 /* ---------------------------------------------------------------- overworld */
 
+.z1r-map-wrap {
+  overflow: auto;
+  height: 374px;
+}
+
 .z1r-map {
   display: grid;
   /*
@@ -513,7 +518,6 @@
    * sampled. The fallback keeps the grid sane before the first measure.
    */
   grid-template-columns: repeat(var(--map-columns, 16), var(--map-cell, 1fr));
-  justify-content: center;
   gap: calc(var(--scale-factor) * 2px);
 }
 
@@ -1401,8 +1405,8 @@
  * of which is the icon's own colour.
  */
 .z1r-tool-mark[data-active="true"] {
-  background-color: color-mix(in srgb, var(--z1r-accent), transparent 50%);
-  outline: 2px solid var(--z1r-text);
+  background-color: color-mix(in srgb, var(--z1r-accent), transparent 60%);
+  outline: 1px dashed var(--z1r-accent);
   outline-offset: 1px;
 }
 
@@ -1472,7 +1476,7 @@
 .z1r-mark-rupy-option[data-active="true"],
 .z1r-mark-warp-option[data-active="true"] {
   color: var(--z1r-bg);
-  background-color: color-mix(in srgb, var(--z1r-accent), transparent 50%);
+  background-color: color-mix(in srgb, var(--z1r-accent), transparent 60%);
   border-color: var(--z1r-accent);
   font-weight: 700;
 }
@@ -1480,12 +1484,12 @@
 /* No label to embolden, so the stock buttons carry the ring instead. */
 .z1r-mark-stock-option[data-active="true"],
 .z1r-mark-rupy-option[data-active="true"] {
-  outline: 2px solid var(--z1r-text);
+  outline: 1px solid var(--z1r-accent);
   outline-offset: 1px;
 }
 
 .z1r-mark-stock-option[data-active="false"],
-.z1r-mark-rupy-option[data-active="true"] {
+.z1r-mark-rupy-option[data-active="false"] {
   border-style: dashed;
   opacity: 0.65;
 }
@@ -1856,14 +1860,14 @@
  * fill. Two different shapes, so the difference is not the colour.
  */
 .z1r-tool-mark[data-armed="true"] {
-  outline: 2px dashed var(--z1r-accent);
+  outline: 2px solid var(--z1r-text);
   outline-offset: 2px;
-  background-color: color-mix(in srgb, var(--z1r-accent), transparent 25%);
+  background-color: color-mix(in srgb, var(--z1r-accent), transparent 60%);
 }
 
 /* Both at once — armed, and the selected tile already carries it. */
 .z1r-tool-mark[data-armed="true"][data-active="true"] {
-  background-color: color-mix(in srgb, var(--z1r-accent), transparent 25%);
+  background-color: color-mix(in srgb, var(--z1r-accent), transparent 60%);
 }
 
 /*
@@ -1920,6 +1924,40 @@
   display: none;
 }
 
+.page-footer {
+  align-items: center;
+  margin-block-start: 10px;
+}
+
+.page-footer span {
+  text-slign: center;
+}
+
+.z1r-map-zoom-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--z1r-accent);
+  margin-right: 4rem;
+  width: 20rem;
+}
+
+.z1r-map-zoom-wrap::before {
+  content: "−";
+}
+
+.z1r-map-zoom-wrap::after {
+  content: "+";
+}
+
+.z1r-map-zoom {
+  flex-grow: 1;
+  cursor: pointer;
+  accent-color: var(--z1r-accent);
+}
+
 /* Armed, but waiting for a level before it can place anything. */
 .z1r-map-tools[data-waiting="true"] .z1r-tool-target {
   color: var(--z1r-accent);
@@ -1934,5 +1972,11 @@
     order: -1;
     width: 100%;
     margin-inline-start: inherit;
+    margin-bottom: 5px;
+  }
+
+  .z1r-map-zoom-wrap {
+    margin-right: 0;
+    width: 100%;
   }
 }
