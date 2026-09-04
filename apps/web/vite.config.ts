@@ -3,6 +3,7 @@ import {
   localMaps,
   spriteManifest,
   localSprites,
+  localImages,
   workspaceAliases
 } from '../../vite.shared.mjs';
 
@@ -12,7 +13,7 @@ const base = process.env.PAGES_BASE ?? '/Z1R_Tracker/';
 
 export default defineConfig({
   base,
-  plugins: [spriteManifest(), localMaps(), localSprites()],
+  plugins: [spriteManifest(), localMaps(), localSprites(), localImages()],
   resolve: { alias: workspaceAliases },
   build: {
     outDir: 'dist',

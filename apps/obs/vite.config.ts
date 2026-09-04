@@ -4,6 +4,7 @@ import {
   localMaps,
   spriteManifest,
   localSprites,
+  localImages,
   workspaceAliases
 } from '../../vite.shared.mjs';
 
@@ -20,7 +21,7 @@ export default defineConfig({
   define: {
     __BUILD_ID__: JSON.stringify(new Date().toISOString().slice(5, 16).replace('T', ' ')),
   },
-  plugins: [spriteManifest(), localMaps(), localSprites()],
+  plugins: [spriteManifest(), localMaps(), localSprites(), localImages()],
   resolve: { alias: workspaceAliases },
   build: {
     outDir: 'dist',

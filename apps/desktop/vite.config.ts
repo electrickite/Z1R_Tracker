@@ -3,6 +3,7 @@ import {
   localMaps,
   spriteManifest,
   localSprites,
+  localImages,
   workspaceAliases
 } from '../../vite.shared.mjs';
 
@@ -32,7 +33,7 @@ function classicScriptTag(): Plugin {
  */
 export default defineConfig({
   base: './',
-  plugins: [spriteManifest(), localMaps(), localSprites(), classicScriptTag()],
+  plugins: [spriteManifest(), localMaps(), localSprites(), localImages(), classicScriptTag()],
   resolve: { alias: workspaceAliases },
   build: {
     outDir: 'dist',

@@ -7,6 +7,7 @@ const source = (path) => fileURLToPath(new URL(path, import.meta.url));
 const MANIFEST = source('./packages/core/src/sprites/manifest.json');
 const MAPS = source('./assets/maps');
 const SPRITES = source('./assets/sprites');
+const IMAGES = source('./assets/images');
 
 /**
  * Publishes the sprite manifest next to each build's `index.html`.
@@ -87,7 +88,7 @@ export function localSprites() {
     }
   };
   return {
-    name: 'z1r-local-maps',
+    name: 'z1r-local-sprites',
     configureServer(server) {
       server.middlewares.use(join(server.config.base, 'sprites'), (req, res, next) => {
         const name = (req.url ?? '').replace(/^\//, '').split('?')[0];
@@ -95,6 +96,39 @@ export function localSprites() {
         try {
           res.setHeader('content-type', 'image/gif');
           res.end(readFileSync(join(SPRITES, name)));
+        } catch {
+          next();
+        }
+      });
+    },
+    generateBundle() {
+      emit(this);
+    },
+  };
+}
+
+/**
+ * Serves static image files.
+ */
+export function localImages() {
+  const emit = (plugin) => {
+    for (const name of readdirSync(IMAGES)) {
+      plugin.emitFile({
+        type: 'asset',
+        fileName: `images/${name}`,
+        source: readFileSync(join(IMAGES, name)),
+      });
+    }
+  };
+  return {
+    name: 'z1r-local-images',
+    configureServer(server) {
+      server.middlewares.use(join(server.config.base, 'images'), (req, res, next) => {
+        const name = (req.url ?? '').replace(/^\//, '').split('?')[0];
+        if (!name || name.includes('..')) return next();
+        try {
+          res.setHeader('content-type', 'image/png');
+          res.end(readFileSync(join(IMAGES, name)));
         } catch {
           next();
         }
