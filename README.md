@@ -1,4 +1,4 @@
-# Z1R_Tracker
+# Z1R Tracker
 
 Item, dungeon and overworld tracker for **The Legend of Zelda** (NES) and **Zelda 1 Randomizer**
 playthroughs.
@@ -99,20 +99,13 @@ hold up. The reasoning, including where the accent came from, is in
 
 ## Sprites
 
-**No sprite art is stored in this repo.** `packages/core/src/sprites/manifest.json` maps a stable
-logical key (`item.sword.wood`) to a remote URL, and every renderer asks the resolver instead of
-hard-coding a path.
+`packages/core/src/sprites/manifest.json` maps a stable logical key (`item.sword.wood`) to an
+asset URL, and every renderer asks the resolver instead of hard-coding a path.
 
 Sprites simple enough to draw — the Triforce, hearts, bombs, the Magical Key, and every overworld
-mark — are **inline SVG** in `sprites/vectors.ts`, so they need no host, work offline, and look right out
-of the box. Anything left over renders as a lettered glyph. Supplying a URL overrides either.
-
-The manifest now ships with 22 item URLs pointing at
-[videogamesprites.net](https://www.videogamesprites.net/Zelda1/Objects/) — one transparent GIF per
-item, at true NES resolution. Coverage is **36 of 45 keys as art**: 23 from URLs (those 22 plus the
-hint-map reference image) and 13 drawn vectors. The nine still on letters are `dungeon.1` …
-`dungeon.9`, and they can stay that way — see
-[`docs/SPRITES.md`](docs/SPRITES.md).
+mark — are **inline SVG** in `sprites/vectors.ts`, so they need no host, work offline, and look
+right out of the box. Anything left over renders as a lettered glyph. Supplying a URL overrides
+either.
 
 To wire up your own art, put a CSV next to the repo and run:
 
@@ -206,7 +199,7 @@ is stylesheet size — see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#theming
 
 ## License
 
-[MIT](LICENSE) © Bryan Halterman
+[MIT](LICENSE) © Bryan Halterman, Corey Hinshaw
 
 This project is not affiliated with or endorsed by Nintendo. *The Legend of Zelda* is a trademark of
 Nintendo. No game assets are distributed with this repository.

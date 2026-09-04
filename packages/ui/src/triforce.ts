@@ -198,9 +198,9 @@ export function buildTriforce(
   const stage = document.createElement('div');
   stage.className = 'z1r-triforce-stage';
   stage.append(
-    createSprite(resolver, 'boss.ganon', { size: 64, className: 'z1r-endgame-figure' }),
+    createSprite(resolver, 'boss.ganon', { size: 56, className: 'z1r-endgame-figure left' }),
     figure,
-    createSprite(resolver, 'npc.zelda', { size: 64, className: 'z1r-endgame-figure' }),
+    createSprite(resolver, 'npc.zelda', { size: 56, className: 'z1r-endgame-figure right' }),
   );
   root.append(stage);
 
@@ -258,6 +258,11 @@ export function buildTriforce(
         'aria-label',
         `Level ${level} Triforce piece — ${held ? 'collected' : 'not collected'}`,
       );
+      const btn = document.querySelector(`.z1r-triforce-toggle[data-level="${level}"]`);
+      if (btn) {
+        btn.textContent = held ? '▲' : '△';
+        btn.setAttribute('aria-pressed', held ? 'true' : 'false');
+      }
     });
   }
 

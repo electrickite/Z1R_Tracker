@@ -305,6 +305,16 @@
   pointer-events: none;
 }
 
+.z1r-endgame-figure.left {
+  margin-top: -36px;
+  margin-right: -56px;
+}
+
+.z1r-endgame-figure.right {
+  margin-top: -36px;
+  margin-left: -56px;
+}
+
 .z1r-triforce-panel[data-winnable="true"] .z1r-endgame-figure {
   display: block;
   animation: z1r-endgame-arrive 520ms ease-out;
@@ -326,6 +336,13 @@
   .z1r-triforce-panel[data-winnable="true"] .z1r-endgame-figure {
     animation: none;
   }
+}
+
+.z1r-triforce-toggle {
+  color: var(--z1r-accent);
+  font-size: 1.2em;
+  border: none;
+  background-color: transparent;
 }
 
 /* ---------------------------------------------- completed Triforce flourish */
@@ -941,7 +958,6 @@
 /* SVG exception: an outline on a <g> is drawn around its bounding box, which
    over a triangle reads as a stray rectangle. Draw the indicator on the
    polygon instead so it follows the actual shape. */
-.z1r-tri-piece:focus,
 .z1r-tri-piece:focus-visible {
   outline: none;
 }

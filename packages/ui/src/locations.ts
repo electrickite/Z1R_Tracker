@@ -84,6 +84,28 @@ export function buildLocations(
       head.append(Object.assign(document.createElement('span'), { textContent: name }));
 
       const level = list[0]?.level;
+
+      if (level !== undefined && level != 9) {
+        const held = state.dungeons[String(level)]?.triforce ?? false;
+        const triButton = document.createElement('button');
+        triButton.type = 'button';
+        triButton.className = 'z1r-triforce-toggle';
+        triButton.dataset.level = level;
+        triButton.textContent = held ? '▲' : '△';
+        triButton.setAttribute('aria-pressed', held ? 'true' : 'false');
+        triButton.disabled = !interactive;
+        triButton.title = `Level ${level} triforce piece`;
+        triButton.setAttribute('aria-label', triButton.title);
+        triButton.addEventListener('click', () => {
+          store.dispatch({
+            type: 'setDungeon',
+            level,
+            patch: { triforce: !(store.getState().dungeons[String(level)]?.triforce ?? false) },
+          });
+        });
+        head.append(triButton);
+      }
+
       if (interactive && level !== undefined && state.seed.shuffleMinorDrops) {
         // Only reachable with Shuffle Minor Drops on, which is the flag that
         // allows more than one item on a dungeon floor.

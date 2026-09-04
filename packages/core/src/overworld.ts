@@ -42,7 +42,7 @@ export type MarkKind =
   | 'rupy'
   | 'hintroom'
   | 'warp'
-  | 'choose'
+  | 'take'
   | 'visited'
   | 'start';
 
@@ -73,7 +73,7 @@ export const MARKS: readonly MarkDef[] = [
   { kind: 'rupy', name: 'Rupees', sprite: 'mark.rupy', color: '#00B2FF' },
   { kind: 'hintroom', name: 'Hint room', sprite: 'mark.hintroom', color: '#0000FF' },
   { kind: 'warp', name: 'Warp stair', sprite: 'mark.warp', color: '#8C00FF' },
-  { kind: 'choose', name: 'Choose any', sprite: 'mark.choose', color: '#FF00D4' },
+  { kind: 'take', name: 'Take any', sprite: 'mark.take', color: '#FF00D4' },
   { kind: 'visited', name: 'Checked', sprite: 'mark.empty', color: '#FF0000' },
   { kind: 'start', name: 'Start', sprite: 'mark.start', color: '#00FF00' },
 ];

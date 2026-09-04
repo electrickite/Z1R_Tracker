@@ -1,15 +1,5 @@
 # Sprites
 
-## Why there's no art in this repo
-
-Two reasons, one practical and one legal.
-
-Practical: three build targets need the same art, and a streamer will want to swap art packs without
-rebuilding anything. Indirection through a manifest gives both for free.
-
-Legal: the sprites are Nintendo's. Redistributing them in a public MIT-licensed repo would be
-relicensing work that isn't ours to relicense. Pointing at a URL doesn't.
-
 ## How resolution works
 
 `packages/core/src/sprites/manifest.json` maps a **logical key** to an entry:
@@ -55,21 +45,11 @@ a tracker that quietly loses half its icons mid-run is worse than one showing le
 — and 13 as drawn vectors. The nine that don't are `dungeon.1` … `dungeon.9`.
 
 The item art — 22 keys, every sword, bow, arrow, boomerang, candle, ring, potion and quest item —
-comes from [videogamesprites.net/Zelda1/Objects](https://www.videogamesprites.net/Zelda1/Objects/):
-individual transparent GIFs, one per item, at true NES resolution. Typical size is 16x32 portrait,
-with outliers from 6px to 32px wide. Because they're original-resolution rather than pre-scaled,
-nearest-neighbour upscaling matters — a smoothed sprite at 40px looks obviously wrong next to a game
-capture, which is why the image tier renders `image-rendering: pixelated` rather than leaving it to
-the browser default.
-
-Hotlinking was checked before committing to it: every URL returns 200 with a third-party referer,
-and the host runs no hotlink protection. What it does *not* send is any CORS header. That's fine for
-`<img>` and `background-image`, which is all the tracker does with them — and the loader
-deliberately doesn't request `crossOrigin='anonymous'`, because an anonymous request to a host with
-no `Access-Control-Allow-Origin` fails outright and drops a perfectly good sprite to a glyph. The
-consequence to remember: **those images would taint a canvas**. Any future feature that reads pixels
-back — recolouring, a generated sheet, a screenshot composite — won't work on them, and would need
-either a CORS-sending mirror or locally hosted copies.
+are individual transparent GIFs, one per item, at true NES resolution. Typical size is 16x32
+portrait, with outliers from 6px to 32px wide. Because they're original-resolution rather than
+pre-scaled, nearest-neighbour upscaling matters — a smoothed sprite at 40px looks obviously wrong
+next to a game capture, which is why the image tier renders `image-rendering: pixelated` rather
+than leaving it to the browser default.
 
 ### Why the level numerals stay as glyphs
 

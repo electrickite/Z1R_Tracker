@@ -819,8 +819,6 @@ function buildMap(
     for (const { row, forKind } of detailRows) row.hidden = forKind !== showing;
     for (const control of [spotSelect, itemSelect]) control.disabled = armed.mark !== 'item' ;
 
-      console.log('Armed', armed);
-      console.log('Note', note);
     for (const button of levelButtons) {
       // While arming, the buttons show what is about to be placed; otherwise
       // they show what the selected tile already is.
@@ -1438,6 +1436,12 @@ function buildMap(
       }
     }
   }, { passive: false });
+
+  store.subscribe((state, action) => {
+    if (action?.type == 'reset') {
+      setArmed('');
+    }
+  });
 
   return root;
 }

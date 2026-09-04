@@ -4,142 +4,142 @@
   "note": "Fill in `url` per sprite, or run `npm run sprites:import -- sprites.csv` to generate this file from a CSV of name,url. Entries with an empty url fall back to the glyph renderer, so the tracker stays usable while art is missing.",
   "sprites": {
     "item.sword.wood": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Wooden%20Sword%20(Up).gif",
+      "url": "./sprites/WoodenSword.gif",
       "name": "Wooden Sword",
       "glyph": "SW"
     },
     "item.sword.white": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/White%20Sword%20(Up).gif",
+      "url": "./sprites/WhiteSword.gif",
       "name": "White Sword",
       "glyph": "SW"
     },
     "item.sword.magical": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Magical%20Sword%20(Menu).gif",
+      "url": "./sprites/MagicalSword.gif",
       "name": "Magical Sword",
       "glyph": "SW"
     },
     "item.bow": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Bow.gif",
+      "url": "./sprites/Bow.gif",
       "name": "Bow",
       "glyph": "BW"
     },
     "item.arrow.wood": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Arrow%20(Up).gif",
+      "url": "./sprites/Arrow.gif",
       "name": "Wooden Arrow",
       "glyph": "AR"
     },
     "item.arrow.silver": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Silver%20Arrow%20(Up).gif",
+      "url": "./sprites/SilverArrow.gif",
       "name": "Silver Arrow",
       "glyph": "AR"
     },
     "item.boomerang.wood": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Boomerang.gif",
+      "url": "./sprites/Boomerang.gif",
       "name": "Boomerang",
       "glyph": "BM"
     },
     "item.boomerang.magical": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Magical%20Boomerang.gif",
+      "url": "./sprites/MagicalBoomerang.gif",
       "name": "Magical Boomerang",
       "glyph": "BM"
     },
     "item.bomb": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Bomb.gif",
+      "url": "./sprites/Bomb.gif",
       "name": "Bombs",
       "glyph": "BO"
     },
     "item.rod": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Magical%20Rod.gif",
+      "url": "./sprites/MagicalRod.gif",
       "name": "Magical Rod",
       "glyph": "RD"
     },
     "item.book": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Book%20of%20Magic.gif",
+      "url": "./sprites/BookofMagic.gif",
       "name": "Book of Magic",
       "glyph": "BK"
     },
     "item.candle.blue": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Blue%20Candle.gif",
+      "url": "./sprites/BlueCandle.gif",
       "name": "Blue Candle",
       "glyph": "CA"
     },
     "item.candle.red": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Red%20Candle.gif",
+      "url": "./sprites/RedCandle.gif",
       "name": "Red Candle",
       "glyph": "CA"
     },
     "item.ring.blue": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Blue%20Ring.gif",
+      "url": "./sprites/BlueRing.gif",
       "name": "Blue Ring",
       "glyph": "RG"
     },
     "item.ring.red": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Red%20Ring.gif",
+      "url": "./sprites/RedRing.gif",
       "name": "Red Ring",
       "glyph": "RG"
     },
     "item.shield.magical": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Magical%20Shield.gif",
+      "url": "./sprites/MagicalShield.gif",
       "name": "Magical Shield",
       "glyph": "MS"
     },
     "item.raft": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Raft1.gif",
+      "url": "./sprites/Raft1.gif",
       "name": "Raft",
       "glyph": "RF"
     },
     "item.ladder": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Stepladder.gif",
+      "url": "./sprites/Stepladder.gif",
       "name": "Step Ladder",
       "glyph": "LD"
     },
     "item.recorder": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Recorder.gif",
+      "url": "./sprites/Recorder.gif",
       "name": "Recorder",
       "glyph": "RC"
     },
     "item.bracelet": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Power%20Bracelet.gif",
+      "url": "./sprites/PowerBracelet.gif",
       "name": "Power Bracelet",
       "glyph": "PB"
     },
     "item.key": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Key.gif",
+      "url": "./sprites/Key.gif",
       "name": "Key",
       "glyph": "KY"
     },
     "item.key.magical": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Magical%20Key.gif",
+      "url": "./sprites/MagicalKey.gif",
       "name": "Magical Key",
       "glyph": "MK"
     },
     "item.bait": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Food.gif",
+      "url": "./sprites/Food.gif",
       "name": "Bait",
       "glyph": "BT"
     },
     "item.letter": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Letter.gif",
+      "url": "./sprites/Letter.gif",
       "name": "Letter",
       "glyph": "LT"
     },
     "item.potion.blue": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Life%20Potion.gif",
+      "url": "./sprites/LifePotion.gif",
       "name": "Life Potion",
       "glyph": "PT"
     },
     "item.potion.red": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/2nd%20Potion.gif",
+      "url": "./sprites/2ndPotion.gif",
       "name": "2nd Potion",
       "glyph": "PT"
     },
     "item.heart": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Heart%20Container.gif",
+      "url": "./sprites/HeartContainer.gif",
       "name": "Heart Container",
       "glyph": "HC"
     },
     "item.life": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Life1.gif",
+      "url": "./sprites/Life1.gif",
       "name": "Life",
       "glyph": "LI"
     },
@@ -229,7 +229,7 @@
       "glyph": "W"
     },
     "mark.start": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Compass.gif",
+      "url": "./sprites/Compass.gif",
       "name": "Start",
       "glyph": "S"
     },
@@ -239,7 +239,7 @@
       "glyph": "-"
     },
     "ui.triforce": {
-      "url": "https://www.videogamesprites.net/Zelda1/Objects/Triforce1.gif",
+      "url": "./sprites/Triforce1.gif",
       "name": "Triforce Piece",
       "glyph": "▲"
     },
@@ -255,11 +255,11 @@
     },
     "boss.ganon": {
       "name": "Ganon",
-      "url": "https://www.videogamesprites.net/Zelda1/Bosses/7%20-%20Ganon%20-%20Red1.gif"
+      "url": "./sprites/Ganon.gif"
     },
     "npc.zelda": {
       "name": "Princess Zelda",
-      "url": "https://www.videogamesprites.net/Zelda1/NPCs/Princess%20Zelda.gif"
+      "url": "./sprites/PrincessZelda.gif"
     }
   }
 }

@@ -137,7 +137,7 @@ export const VECTORS: Readonly<Record<string, VectorSprite>> = {
      <rect x="4.4" y="8" width="4.8" height="1.2" fill="#efe8ff"/>`,
   ),
 
-  'mark.choose': V(
+  'mark.take': V(
     `<path d="M8,14.23 L7.03,13.35 C3.6,10.24 1.33,8.19 1.33,5.67 C1.33,3.61 2.95,2 5,2 C6.16,2 7.27,2.54 8,3.39 C8.73,2.54 9.84,2 11,2 C13.05,2 14.67,3.61 14.67,5.67 C14.67,8.19 12.4,10.24 8.97,13.35 Z" fill="#e5343e" stroke="#a10f18" stroke-width="0.4" stroke-linejoin="round"/>
      <text x="8" y="8.9" text-anchor="middle" dominant-baseline="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" fill="#ffffff">?</text>`,
   ),
