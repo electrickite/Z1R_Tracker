@@ -590,14 +590,14 @@ function buildMap(
    * those here would make this a second Reset wearing a friendlier label.
    */
   if (interactive) {
-    const cancelButton = el('button', 'z1r-chip-button z1r-cancel-button', 'Cancel');
-    cancelButton.type = 'button';
-    cancelButton.title = 'Cancel current map operation and screen selection';
-    cancelButton.addEventListener('click', () => {
+    const doneButton = el('button', 'z1r-chip-button z1r-done-button', 'Done');
+    doneButton.type = 'button';
+    doneButton.title = 'Cancel current map operation and screen selection';
+    doneButton.addEventListener('click', () => {
       setArmed('');
       selectScreen('');
     });
-    heading?.append(cancelButton);
+    heading?.append(doneButton);
 
     const clear = el('button', 'z1r-chip-button z1r-map-clear', 'Clear');
     clear.type = 'button';

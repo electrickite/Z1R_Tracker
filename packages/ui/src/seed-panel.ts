@@ -84,7 +84,7 @@ export function buildSeedPanel(store: Store, patches: Patch[], interactive: bool
   };
 
   const check = (
-    key: 'shuffleDungeonDrops' | 'shuffleMinorDrops' | 'importantItemsIn9' | 'mirroredOverworld',
+    key: 'shuffleMinorDrops' | 'mirroredOverworld',
     label: string,
     hint: string,
   ) => {
@@ -155,19 +155,9 @@ export function buildSeedPanel(store: Store, patches: Patch[], interactive: bool
   checks.className = 'z1r-checks';
   checks.append(
     check(
-      'shuffleDungeonDrops',
-      'Shuffle dungeon drops',
-      'Triforce, hearts, keys, compass and map join the shuffle.',
-    ),
-    check(
       'shuffleMinorDrops',
-      'Shuffle minor drops',
+      'Shuffle minor dungeon drops',
       'Bomb/rupee/key drops join the shuffle — lets a dungeon hold extra floor items.',
-    ),
-    check(
-      'importantItemsIn9',
-      'Important items in 9',
-      'Ladder, raft, bracelet, recorder and bow may appear in Level 9.',
     ),
     check(
       'mirroredOverworld',

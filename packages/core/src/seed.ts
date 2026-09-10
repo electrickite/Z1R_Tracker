@@ -38,13 +38,13 @@ export type ItemShuffle = 'none' | 'dungeon' | 'anywhere-hearts-in-dungeons' | '
 
 export const ITEM_SHUFFLES: readonly { value: ItemShuffle; label: string; note: string }[] = [
   { value: 'none', label: 'None', note: 'Everything in vanilla locations' },
-  { value: 'dungeon', label: 'Dungeon Items', note: 'Heart on floor of each dungeon' },
+  { value: 'dungeon', label: 'Item Only', note: 'Heart on floor of each dungeon' },
   {
     value: 'anywhere-hearts-in-dungeons',
-    label: 'Items Anywhere, Hearts within Dungeons',
+    label: 'Intra-Dungeon',
     note: '1 heart per dungeon 1-8, may be in a stair',
   },
-  { value: 'items-hearts', label: 'Items + Hearts', note: 'Full shuffle of all hearts and items' },
+  { value: 'items-hearts', label: 'Full', note: 'Full shuffle of all hearts and items' },
   { value: 'random', label: 'Random', note: 'Randomizer picks one of the above' },
 ];
 
@@ -58,12 +58,8 @@ export interface SeedSettings {
   flags: string;
   dungeonQuest: DungeonQuest;
   itemShuffle: ItemShuffle;
-  /** Triforce / hearts / keys / compass / map join the shuffle. */
-  shuffleDungeonDrops: boolean;
   /** Bomb / rupee / key drops join the shuffle — allows extra floor items. */
   shuffleMinorDrops: boolean;
-  /** Ladder, raft, bracelet, recorder, bow (and wand when swordless) may be in L9. */
-  importantItemsIn9: boolean;
   /** Mirrored Overworld flips the map left-to-right — and the hint regions with it. */
   mirroredOverworld: boolean;
   /**
@@ -82,9 +78,7 @@ export function createSeedSettings(): SeedSettings {
     flags: '',
     dungeonQuest: '1st',
     itemShuffle: 'items-hearts',
-    shuffleDungeonDrops: true,
     shuffleMinorDrops: false,
-    importantItemsIn9: false,
     mirroredOverworld: false,
     questLow: '1st',
     questHigh: '1st',
@@ -103,7 +97,7 @@ export function questIsAmbiguous(quest: DungeonQuest): boolean {
 
 /** Mixed guarantees 1-6 and 7-9 come from *different* quests. */
 export function questsMustDiffer(quest: DungeonQuest): boolean {
-  return quest === 'mixed' || quest === 'mixed-shapes';
+  return quest === 'mixed';
 }
 
 /** The quest whose item layout a given level follows. */

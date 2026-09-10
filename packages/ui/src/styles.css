@@ -1790,13 +1790,13 @@
   margin-block-end: 0;
 }
 
-.z1r-cancel-button {
+.z1r-done-button {
   margin-inline-start: auto;
   display: none;
 }
 
-.z1r-map-panel:has(.z1r-screen[data-selected="true"]) .z1r-cancel-button,
-.z1r-map-panel:has(.z1r-map-tools[data-active="true"]) .z1r-cancel-button {
+.z1r-map-panel:has(.z1r-screen[data-selected="true"]) .z1r-done-button,
+.z1r-map-panel:has(.z1r-map-tools[data-active="true"]) .z1r-done-button {
   display: block;
 }
 

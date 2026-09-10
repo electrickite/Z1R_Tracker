@@ -28,9 +28,9 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 const KIND_TITLE: Record<string, string> = {
-  floor: 'Lying on the dungeon floor',
-  stair: 'Behind a staircase / item basement',
-  heart: 'Heart Container',
+  floor: 'Floor of a dungeon room',
+  stair: 'Behind a staircase',
+  heart: 'Heart container slot (floor)',
   overworld: 'Named overworld location',
 };
 
