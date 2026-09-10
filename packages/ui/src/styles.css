@@ -907,7 +907,7 @@
 .z1r-seed-body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: var(--z1r-space-sm) var(--z1r-space-lg);
+  gap: 1.2em var(--z1r-space-lg);
   align-items: start;
 }
 
@@ -916,6 +916,10 @@
   flex-direction: column;
   gap: 3px;
   min-inline-size: 0;
+}
+
+.z1r-field-newline {
+  grid-column-start: 1;
 }
 
 .z1r-field-label,

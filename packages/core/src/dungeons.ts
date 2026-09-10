@@ -7,6 +7,8 @@
  * shown in the `z1` build and hidden in `z1r`.
  */
 
+import type { TrackerState } from './state.js';
+
 export interface DungeonDef {
   /** Level number, 1-9. */
   readonly level: number;
@@ -83,8 +85,8 @@ export const DUNGEONS_BY_LEVEL: ReadonlyMap<number, DungeonDef> = new Map(
   DUNGEONS.map((d) => [d.level, d]),
 );
 
-/** Triforce pieces needed before Level 9's entrance opens. */
-export const TRIFORCE_REQUIRED_FOR_L9 = 8;
+/** Number of levels that can have Triforce pieces. */
+export const TRIFORCE_LEVELS = 8;
 
 /**
  * Levels that actually hold a piece — 1 to 8. Level 9 holds Ganon.
@@ -94,5 +96,5 @@ export const TRIFORCE_REQUIRED_FOR_L9 = 8;
  * Level 9 flagged reach eight with only seven real pieces.
  */
 export function holdsTriforcePiece(level: number): boolean {
-  return Number.isInteger(level) && level >= 1 && level <= TRIFORCE_REQUIRED_FOR_L9;
+  return Number.isInteger(level) && level >= 1 && level <= TRIFORCE_LEVELS;
 }

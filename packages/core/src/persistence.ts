@@ -166,6 +166,8 @@ function conformSeed(base: SeedSettings, saved: unknown): SeedSettings {
   if (!SHUFFLES.has(seed.itemShuffle)) seed.itemShuffle = base.itemShuffle;
   if (seed.questLow !== '1st' && seed.questLow !== '2nd') seed.questLow = base.questLow;
   if (seed.questHigh !== '1st' && seed.questHigh !== '2nd') seed.questHigh = base.questHigh;
+  seed.triforceRequired = parseInt(seed.triforceRequired);
+  if (seed.triforceRequired < 0 || seed.triforceRequired > 8) seed.triforceRequired = base.triforceRequired;
   return seed;
 }
 

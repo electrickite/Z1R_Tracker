@@ -48,6 +48,18 @@ export const ITEM_SHUFFLES: readonly { value: ItemShuffle; label: string; note: 
   { value: 'random', label: 'Random', note: 'Randomizer picks one of the above' },
 ];
 
+export const TRIFORCE_OPTIONS: readonly { value: number; label: string }[] = [
+  { value: 0, label: '0' },
+  { value: 1, label: '1' },
+  { value: 2, label: '2' },
+  { value: 3, label: '3' },
+  { value: 4, label: '4' },
+  { value: 5, label: '5' },
+  { value: 6, label: '6' },
+  { value: 7, label: '7' },
+  { value: 8, label: '8' },
+];
+
 /** Either concrete quest a level's layout can resolve to. */
 export type ConcreteQuest = '1st' | '2nd';
 
@@ -58,6 +70,7 @@ export interface SeedSettings {
   flags: string;
   dungeonQuest: DungeonQuest;
   itemShuffle: ItemShuffle;
+  triforceRequired: number;
   /** Bomb / rupee / key drops join the shuffle — allows extra floor items. */
   shuffleMinorDrops: boolean;
   /** Mirrored Overworld flips the map left-to-right — and the hint regions with it. */
@@ -78,6 +91,7 @@ export function createSeedSettings(): SeedSettings {
     flags: '',
     dungeonQuest: '1st',
     itemShuffle: 'items-hearts',
+    triforceRequired: 8,
     shuffleMinorDrops: false,
     mirroredOverworld: false,
     questLow: '1st',

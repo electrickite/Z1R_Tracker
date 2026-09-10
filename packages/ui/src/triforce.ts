@@ -25,7 +25,6 @@ import {
   questForLevel,
   questIsAmbiguous,
   triforceCount,
-  TRIFORCE_REQUIRED_FOR_L9,
   type ConcreteQuest,
   type SpriteResolver,
   type Store,
@@ -313,14 +312,15 @@ export function buildTriforce(
 
   patches.push((state) => {
     const pieces = triforceCount(state);
-    count.textContent = `${pieces}/${TRIFORCE_REQUIRED_FOR_L9}`;
+    count.textContent = `${pieces}/${state.seed.triforceRequired}`;
     // All eight wedges, not `canEnterLevel9` — some settings open Level 9
     // early, and the celebration is for the finished triangle specifically.
     figure.dataset.complete = String(pieces === LEVELS.length);
     const open = canEnterLevel9(state);
+    const piecesNeeded = Math.max(0, state.seed.triforceRequired - pieces);
     status.textContent = open
       ? 'Level 9 is open'
-      : `Level 9 sealed — ${TRIFORCE_REQUIRED_FOR_L9 - pieces} to go`;
+      : `Level 9 sealed — ${piecesNeeded} to go`;
     status.dataset.ready = String(open);
 
     // Under Mixed or Random the split isn't known until the player records it,

@@ -12,12 +12,11 @@
 
 import type { TrackerState } from './state.js';
 import { triforceCount } from './state.js';
-import { TRIFORCE_REQUIRED_FOR_L9 } from './dungeons.js';
 import { deriveLocations } from './seed.js';
 
 /** Level 9's entrance stays shut until every Triforce piece is in hand. */
 export function canEnterLevel9(state: TrackerState): boolean {
-  return triforceCount(state) >= TRIFORCE_REQUIRED_FOR_L9;
+  return triforceCount(state) >= state.seed.triforceRequired;
 }
 
 /** `arrow` is progressive: stage 1 is the Wooden Arrow, stage 2 the Silver. */

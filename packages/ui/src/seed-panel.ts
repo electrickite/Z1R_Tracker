@@ -9,6 +9,7 @@
 import {
   DUNGEON_QUESTS,
   ITEM_SHUFFLES,
+  TRIFORCE_OPTIONS,
   questIsAmbiguous,
   questsMustDiffer,
   type ConcreteQuest,
@@ -18,9 +19,10 @@ import {
 } from '@z1r/core';
 import { memoise, runPatches, type Patch } from './patch.js';
 
-function field(label: string, control: HTMLElement, hint?: string): HTMLElement {
+function field(label: string, control: HTMLElement, hint?: string, classes?: string): HTMLElement {
   const wrap = document.createElement('label');
   wrap.className = 'z1r-field';
+  if (classes) wrap.classList.add(classes);
   const text = document.createElement('span');
   text.className = 'z1r-field-label';
   text.textContent = label;
@@ -105,11 +107,26 @@ export function buildSeedPanel(store: Store, patches: Patch[], interactive: bool
   };
 
   body.append(
-    field('Seed', text('seed', 'e.g. 1234567890')),
-    field('Flags', text('flags', 'paste the flag string')),
     field('Dungeon Quest', select(DUNGEON_QUESTS, 'dungeonQuest'), 'Sets each level’s item slots'),
     field('Item Shuffle', select(ITEM_SHUFFLES, 'itemShuffle')),
+    field('Triforce pieces', select(TRIFORCE_OPTIONS, 'triforceRequired'), 'Rriforce pieces needed to enter level 9'),
   );
+
+  const checks = document.createElement('div');
+  checks.className = 'z1r-checks';
+  checks.append(
+    check(
+      'shuffleMinorDrops',
+      'Shuffle minor dungeon drops',
+      'Bomb/rupee/key drops join the shuffle — lets a dungeon hold extra floor items.',
+    ),
+    check(
+      'mirroredOverworld',
+      'Mirrored overworld',
+      'Flips the map left to right — the hint regions on the grid flip with it.',
+    ),
+  );
+  body.append(checks);
 
   // Mixed and the Random options don't reveal the quest split until you're in
   // the seed, so the player records it as they find out.
@@ -151,22 +168,11 @@ export function buildSeedPanel(store: Store, patches: Patch[], interactive: bool
   split.append(questToggle('questLow', 'L1-6'), questToggle('questHigh', 'L7-9'));
   body.append(split);
 
-  const checks = document.createElement('div');
-  checks.className = 'z1r-checks';
-  checks.append(
-    check(
-      'shuffleMinorDrops',
-      'Shuffle minor dungeon drops',
-      'Bomb/rupee/key drops join the shuffle — lets a dungeon hold extra floor items.',
-    ),
-    check(
-      'mirroredOverworld',
-      'Mirrored overworld',
-      'Flips the map left to right — the hint regions on the grid flip with it.',
-    ),
+  body.append(
+    field('Seed', text('seed', 'e.g. 1234567890'), null, 'z1r-field-newline'),
+    field('Flags', text('flags', 'paste the flag string')),
+    field('Notes', text('notes', 'hints, routing, anything')),
   );
-  body.append(checks);
-  body.append(field('Notes', text('notes', 'hints, routing, anything')));
 
   patches.push((state) => {
     const quest = state.seed.dungeonQuest;
