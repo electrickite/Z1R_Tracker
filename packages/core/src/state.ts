@@ -23,7 +23,7 @@ import {
   type SeedSettings
 } from './seed.js';
 
-export const STATE_VERSION = 8;
+export const STATE_VERSION = 9;
 
 /** Upper bound on manual extra floor slots. Shared with `migrate` on purpose. */
 export const MAX_EXTRA_FLOOR_SLOTS = 8;

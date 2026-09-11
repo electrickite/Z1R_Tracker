@@ -12,11 +12,28 @@
 
 import type { TrackerState } from './state.js';
 import { triforceCount } from './state.js';
-import { deriveLocations } from './seed.js';
+import {
+  deriveLocations,
+  level9EntryType,
+  POOL_BY_ID,
+} from './seed.js';
 
 /** Level 9's entrance stays shut until every Triforce piece is in hand. */
 export function canEnterLevel9(state: TrackerState): boolean {
-  return triforceCount(state) >= state.seed.triforceRequired;
+  const type = level9EntryType(state.seed.level9);
+  switch (type) {
+    case 'triforceCount':
+      return triforceCount(state) >= parseInt(state.seed.level9);
+    case 'item':
+      const item = POOL_BY_ID.get(state.seed.level9);
+      if (!item) return false;
+      return (state.items[item.itemId] ?? 0) == item.value;
+    case 'open':
+      return true;
+    case 'closed':
+    default:
+      return false;
+  }
 }
 
 /** `arrow` is progressive: stage 1 is the Wooden Arrow, stage 2 the Silver. */

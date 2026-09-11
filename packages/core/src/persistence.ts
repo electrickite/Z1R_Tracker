@@ -26,7 +26,14 @@ import {
   RUPY_TYPES_BY_ID,
   type MarkKind,
 } from './overworld.js';
-import { OVERWORLD_LOCATIONS, POOL_BY_ID, type SeedSettings } from './seed.js';
+
+import {
+  OVERWORLD_LOCATIONS,
+  POOL_BY_ID,
+  TRIFORCE_OPTIONS_BY_VALUE,
+  LEVEL9_MISC_OPTIONS_BY_VALUE,
+  type SeedSettings
+} from './seed.js';
 
 export const STORAGE_KEY = 'z1r-tracker:state';
 export const CHANNEL_NAME = 'z1r-tracker';
@@ -166,8 +173,13 @@ function conformSeed(base: SeedSettings, saved: unknown): SeedSettings {
   if (!SHUFFLES.has(seed.itemShuffle)) seed.itemShuffle = base.itemShuffle;
   if (seed.questLow !== '1st' && seed.questLow !== '2nd') seed.questLow = base.questLow;
   if (seed.questHigh !== '1st' && seed.questHigh !== '2nd') seed.questHigh = base.questHigh;
-  seed.triforceRequired = parseInt(seed.triforceRequired);
-  if (seed.triforceRequired < 0 || seed.triforceRequired > 8) seed.triforceRequired = base.triforceRequired;
+  if (
+    !TRIFORCE_OPTIONS_BY_VALUE.has(seed.level9)
+    && !LEVEL9_MISC_OPTIONS_BY_VALUE.has(seed.level9)
+    && !POOL_BY_ID.has(seed.level9)
+  ) {
+    seed.level9 = base.level9;
+  }
   return seed;
 }
 

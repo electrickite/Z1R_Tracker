@@ -48,17 +48,36 @@ export const ITEM_SHUFFLES: readonly { value: ItemShuffle; label: string; note: 
   { value: 'random', label: 'Random', note: 'Randomizer picks one of the above' },
 ];
 
-export const TRIFORCE_OPTIONS: readonly { value: number; label: string }[] = [
-  { value: 0, label: '0' },
-  { value: 1, label: '1' },
-  { value: 2, label: '2' },
-  { value: 3, label: '3' },
-  { value: 4, label: '4' },
-  { value: 5, label: '5' },
-  { value: 6, label: '6' },
-  { value: 7, label: '7' },
-  { value: 8, label: '8' },
+export const LEVEL9_MISC_OPTIONS: readonly { value: string; label: string }[] = [
+  { value: 'open', label: 'Open' },
+  { value: 'closed', label: 'Sealed' },
+  { value: 'unknown', label: 'Unknown' },
 ];
+
+export const LEVEL9_MISC_OPTIONS_BY_VALUE: ReadonlyMap<string, { value: string; label: string }> = new Map(
+  LEVEL9_MISC_OPTIONS.map((entry) => [entry.value, entry]),
+);
+
+export const TRIFORCE_OPTIONS: readonly { value: string; label: string }[] = [
+  { value: '1', label: '1 Triforce piece' },
+  { value: '2', label: '2 Triforce pieces' },
+  { value: '3', label: '3 Triforce pieces' },
+  { value: '4', label: '4 Triforce pieces' },
+  { value: '5', label: '5 Triforce pieces' },
+  { value: '6', label: '6 Triforce pieces' },
+  { value: '7', label: '7 Triforce pieces' },
+  { value: '8', label: '8 Triforce pieces' },
+];
+
+export const TRIFORCE_OPTIONS_BY_VALUE: ReadonlyMap<string, { value: string; label: string }> = new Map(
+  TRIFORCE_OPTIONS.map((entry) => [entry.value, entry]),
+);
+
+export function level9EntryType(entry: string): string {
+  if (TRIFORCE_OPTIONS_BY_VALUE.has(entry)) return 'triforceCount';
+  if (POOL_BY_ID.has(entry)) return 'item';
+  return entry;
+}
 
 /** Either concrete quest a level's layout can resolve to. */
 export type ConcreteQuest = '1st' | '2nd';
@@ -70,7 +89,7 @@ export interface SeedSettings {
   flags: string;
   dungeonQuest: DungeonQuest;
   itemShuffle: ItemShuffle;
-  triforceRequired: number;
+  level9: string;
   /** Bomb / rupee / key drops join the shuffle — allows extra floor items. */
   shuffleMinorDrops: boolean;
   /** Mirrored Overworld flips the map left-to-right — and the hint regions with it. */
@@ -91,7 +110,7 @@ export function createSeedSettings(): SeedSettings {
     flags: '',
     dungeonQuest: '1st',
     itemShuffle: 'items-hearts',
-    triforceRequired: 8,
+    level9: '8',
     shuffleMinorDrops: false,
     mirroredOverworld: false,
     questLow: '1st',
@@ -326,6 +345,13 @@ export const OVERWORLD_POOL: readonly PoolEntry[] = [
   { id: 'woodSword', name: 'Wooden Sword', itemId: 'sword', value: 1, sprite: 'item.sword.wood' },
 ];
 
+export const ITEM_POOL: readonly PoolEntry[] = OVERWORLD_POOL.concat(SHUFFLE_POOL)
+  .sort((a,b) => a.name.localeCompare(b.name));
+
+export const ITEM_OPTIONS: readonly { value: number; label: string }[] = ITEM_POOL.map((item) => {
+  return { value: item.id, label: item.name };
+});
+
 export const POOL_BY_ID: ReadonlyMap<string, PoolEntry> = new Map(
-  OVERWORLD_POOL.concat(SHUFFLE_POOL).map((entry) => [entry.id, entry]),
+  ITEM_POOL.map((entry) => [entry.id, entry]),
 );

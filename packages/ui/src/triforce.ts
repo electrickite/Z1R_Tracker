@@ -25,6 +25,8 @@ import {
   questForLevel,
   questIsAmbiguous,
   triforceCount,
+  level9EntryType,
+  POOL_BY_ID,
   type ConcreteQuest,
   type SpriteResolver,
   type Store,
@@ -312,15 +314,30 @@ export function buildTriforce(
 
   patches.push((state) => {
     const pieces = triforceCount(state);
-    count.textContent = `${pieces}/${state.seed.triforceRequired}`;
+    const entryType = level9EntryType(state.seed.level9);
+    count.textContent = `${pieces}/${LEVELS.length}`;
     // All eight wedges, not `canEnterLevel9` — some settings open Level 9
     // early, and the celebration is for the finished triangle specifically.
     figure.dataset.complete = String(pieces === LEVELS.length);
     const open = canEnterLevel9(state);
-    const piecesNeeded = Math.max(0, state.seed.triforceRequired - pieces);
-    status.textContent = open
-      ? 'Level 9 is open'
-      : `Level 9 sealed — ${piecesNeeded} to go`;
+    if (open) {
+      status.textContent = 'Level 9 is open';
+    } else {
+      switch (entryType) {
+        case 'triforceCount':
+          const piecesNeeded = Math.max(0, parseInt(state.seed.level9) - pieces);
+          status.textContent = `Level 9 sealed — ${piecesNeeded} to go`;
+          break;
+        case 'item':
+          status.textContent = `Level 9 sealed — ${POOL_BY_ID.get(state.seed.level9)?.name} needed`;
+          break;
+        case 'closed':
+          status.textContent = 'Level 9 sealed';
+          break;
+        default:
+          status.textContent = 'Level 9 state unknown';
+      }
+    }
     status.dataset.ready = String(open);
 
     // Under Mixed or Random the split isn't known until the player records it,

@@ -9,7 +9,9 @@
 import {
   DUNGEON_QUESTS,
   ITEM_SHUFFLES,
+  LEVEL9_MISC_OPTIONS,
   TRIFORCE_OPTIONS,
+  ITEM_OPTIONS,
   questIsAmbiguous,
   questsMustDiffer,
   type ConcreteQuest,
@@ -67,16 +69,20 @@ export function buildSeedPanel(store: Store, patches: Patch[], interactive: bool
 
   const select = <T extends string>(
     options: readonly { value: T; label: string }[],
-    key: 'dungeonQuest' | 'itemShuffle',
+    key: 'dungeonQuest' | 'itemShuffle' | 'level9',
   ) => {
     const el = document.createElement('select');
     el.className = 'z1r-input';
     el.disabled = !interactive;
     for (const option of options) {
-      const node = document.createElement('option');
-      node.value = option.value;
-      node.textContent = option.label;
-      el.append(node);
+      if (option.id != 'hr') {
+        const node = document.createElement('option');
+        node.value = option.value;
+        node.textContent = option.label;
+        el.append(node);
+      } else {
+        el.append(document.createElement('hr'));
+      }
     }
     el.addEventListener('change', () => set({ [key]: el.value }));
     patches.push((state) => {
@@ -106,10 +112,17 @@ export function buildSeedPanel(store: Store, patches: Patch[], interactive: bool
     return wrap;
   };
 
+  const level9Options = LEVEL9_MISC_OPTIONS.concat(
+    [{ value: 'hr', name: null }],
+    TRIFORCE_OPTIONS,
+    [{ value: 'hr', name: null }],
+    ITEM_OPTIONS
+  );
+
   body.append(
     field('Dungeon Quest', select(DUNGEON_QUESTS, 'dungeonQuest'), 'Sets each level’s item slots'),
     field('Item Shuffle', select(ITEM_SHUFFLES, 'itemShuffle')),
-    field('Triforce pieces', select(TRIFORCE_OPTIONS, 'triforceRequired'), 'Rriforce pieces needed to enter level 9'),
+    field('Level 9 Entry', select(level9Options, 'level9')),
   );
 
   const checks = document.createElement('div');
