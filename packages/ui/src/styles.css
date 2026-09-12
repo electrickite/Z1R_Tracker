@@ -906,7 +906,7 @@
 
 .z1r-seed-body {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 1.2em var(--z1r-space-lg);
   align-items: start;
 }
@@ -1003,6 +1003,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.z1r-triforce-checks div {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+}
+
+.z1r-trforce-checks[hidden] {
+  display: none;
 }
 
 .z1r-segmented-sm button {

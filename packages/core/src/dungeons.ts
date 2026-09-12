@@ -85,8 +85,8 @@ export const DUNGEONS_BY_LEVEL: ReadonlyMap<number, DungeonDef> = new Map(
   DUNGEONS.map((d) => [d.level, d]),
 );
 
-/** Number of levels that can have Triforce pieces. */
-export const TRIFORCE_LEVELS = 8;
+/** Levels that can have Triforce pieces. */
+export const TRIFORCE_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 /**
  * Levels that actually hold a piece — 1 to 8. Level 9 holds Ganon.
@@ -96,5 +96,5 @@ export const TRIFORCE_LEVELS = 8;
  * Level 9 flagged reach eight with only seven real pieces.
  */
 export function holdsTriforcePiece(level: number): boolean {
-  return Number.isInteger(level) && level >= 1 && level <= TRIFORCE_LEVELS;
+  return Number.isInteger(level) && TRIFORCE_LEVELS.includes(level);
 }

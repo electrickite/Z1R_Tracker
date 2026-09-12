@@ -35,6 +35,8 @@ import {
   type SeedSettings
 } from './seed.js';
 
+import { TRIFORCE_LEVELS } from './dungeons.js';
+
 export const STORAGE_KEY = 'z1r-tracker:state';
 export const CHANNEL_NAME = 'z1r-tracker';
 
@@ -180,6 +182,11 @@ function conformSeed(base: SeedSettings, saved: unknown): SeedSettings {
   ) {
     seed.level9 = base.level9;
   }
+  if (
+    !Array.isArray(seed.requiredLevels)
+    || (new Set(seed.requiredLevels)).size !== seed.requiredLevels.length
+    || seed.requiredLevels.some((el) => el < 1 || el > TRIFORCE_LEVELS.length)
+  ) seed.requiredLevels = base.requiredLevels;
   return seed;
 }
 

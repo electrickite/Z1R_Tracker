@@ -11,7 +11,7 @@
  * https://z1r.wiki/wiki/Dungeon_Quest
  */
 
-import { DUNGEONS } from './dungeons.js';
+import { DUNGEONS, TRIFORCE_LEVELS } from './dungeons.js';
 
 /** https://z1r.wiki/wiki/Dungeon_Quest */
 export type DungeonQuest =
@@ -51,6 +51,7 @@ export const ITEM_SHUFFLES: readonly { value: ItemShuffle; label: string; note: 
 export const LEVEL9_MISC_OPTIONS: readonly { value: string; label: string }[] = [
   { value: 'open', label: 'Open' },
   { value: 'closed', label: 'Sealed' },
+  { value: 'requiredLevels', label: 'Specific Triforces' },
   { value: 'unknown', label: 'Unknown' },
 ];
 
@@ -58,16 +59,10 @@ export const LEVEL9_MISC_OPTIONS_BY_VALUE: ReadonlyMap<string, { value: string; 
   LEVEL9_MISC_OPTIONS.map((entry) => [entry.value, entry]),
 );
 
-export const TRIFORCE_OPTIONS: readonly { value: string; label: string }[] = [
-  { value: '1', label: '1 Triforce piece' },
-  { value: '2', label: '2 Triforce pieces' },
-  { value: '3', label: '3 Triforce pieces' },
-  { value: '4', label: '4 Triforce pieces' },
-  { value: '5', label: '5 Triforce pieces' },
-  { value: '6', label: '6 Triforce pieces' },
-  { value: '7', label: '7 Triforce pieces' },
-  { value: '8', label: '8 Triforce pieces' },
-];
+export const TRIFORCE_OPTIONS: readonly { value: string; label: string }[] = TRIFORCE_LEVELS.map((el, idx) => {
+  const num = idx + 1;
+  return { value: String(num), label: `${num} Triforce ${num == 1 ? 'piece' : 'pieces'}` };
+});
 
 export const TRIFORCE_OPTIONS_BY_VALUE: ReadonlyMap<string, { value: string; label: string }> = new Map(
   TRIFORCE_OPTIONS.map((entry) => [entry.value, entry]),
@@ -90,6 +85,7 @@ export interface SeedSettings {
   dungeonQuest: DungeonQuest;
   itemShuffle: ItemShuffle;
   level9: string;
+  requiredLevels: number[];
   /** Bomb / rupee / key drops join the shuffle — allows extra floor items. */
   shuffleMinorDrops: boolean;
   /** Mirrored Overworld flips the map left-to-right — and the hint regions with it. */
@@ -111,6 +107,7 @@ export function createSeedSettings(): SeedSettings {
     dungeonQuest: '1st',
     itemShuffle: 'items-hearts',
     level9: '8',
+    requiredLevels: [],
     shuffleMinorDrops: false,
     mirroredOverworld: false,
     questLow: '1st',

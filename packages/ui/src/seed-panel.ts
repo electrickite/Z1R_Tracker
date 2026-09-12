@@ -12,6 +12,7 @@ import {
   LEVEL9_MISC_OPTIONS,
   TRIFORCE_OPTIONS,
   ITEM_OPTIONS,
+  TRIFORCE_LEVELS,
   questIsAmbiguous,
   questsMustDiffer,
   type ConcreteQuest,
@@ -125,6 +126,41 @@ export function buildSeedPanel(store: Store, patches: Patch[], interactive: bool
     field('Level 9 Entry', select(level9Options, 'level9')),
   );
 
+  const pieces = document.createElement('div');
+  pieces.className = 'z1r-triforce-checks';
+  const piecesLabel = document.createElement('span');
+  piecesLabel.className = 'z1r-field-label';
+  piecesLabel.textContent = 'Triforce pieces required';
+  pieces.append(piecesLabel);
+  const piecesContainer = document.createElement('div');
+  pieces.append(piecesContainer);
+
+
+  for (const level of TRIFORCE_LEVELS) {
+    const wrap = document.createElement('label');
+    wrap.className = 'z1r-check';
+    wrap.title = `Level ${level} Triforce required`;
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.dataset.level = level;
+    box.disabled = !interactive;
+    box.addEventListener('change', () => {
+      const requiredLevels = [];
+      pieces.querySelectorAll('input').forEach((input) => {
+        if (input.checked) requiredLevels.push(parseInt(input.dataset.level));
+      });
+      set({ requiredLevels });
+    });
+    const span = document.createElement('span');
+    span.textContent = level;
+    wrap.append(box, span);
+    patches.push((state) => {
+      box.checked = state.seed.requiredLevels.includes(level);
+    });
+    piecesContainer.append(wrap);
+  }
+  body.append(pieces);
+
   const checks = document.createElement('div');
   checks.className = 'z1r-checks';
   checks.append(
@@ -195,6 +231,7 @@ export function buildSeedPanel(store: Store, patches: Patch[], interactive: bool
     splitLabel.textContent = questsMustDiffer(quest)
       ? 'Quest split (1-6 and 7-9 always differ)'
       : 'Quest split';
+    pieces.hidden = state.seed.level9 != 'requiredLevels';
   });
 
   return root;

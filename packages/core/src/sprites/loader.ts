@@ -41,7 +41,6 @@ export type ResolvedSprite =
 function join(baseUrl: string | undefined, url: string): string {
   if (!baseUrl) return url;
   if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) return url;
-  console.log(`${baseUrl.replace(/\/+$/, '')}/${url.replace(/^\/+/, '')}`);
   return `${baseUrl.replace(/\/+$/, '')}/${url.replace(/^\/+/, '')}`;
 }
 

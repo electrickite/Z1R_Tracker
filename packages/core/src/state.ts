@@ -23,7 +23,7 @@ import {
   type SeedSettings
 } from './seed.js';
 
-export const STATE_VERSION = 9;
+export const STATE_VERSION = 10;
 
 /** Upper bound on manual extra floor slots. Shared with `migrate` on purpose. */
 export const MAX_EXTRA_FLOOR_SLOTS = 8;
@@ -290,8 +290,6 @@ export function reduce(state: TrackerState, action: Action, now = Date.now()): T
       ...emptyNote(),
       ...details,
     };
-    console.log(marks[screen]);
-    console.log(screenNotes[screen]);
     return bump({ marks, screenNotes });
   };
 

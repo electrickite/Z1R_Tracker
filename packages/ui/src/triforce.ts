@@ -27,6 +27,7 @@ import {
   triforceCount,
   level9EntryType,
   POOL_BY_ID,
+  TRIFORCE_LEVELS,
   type ConcreteQuest,
   type SpriteResolver,
   type Store,
@@ -72,8 +73,6 @@ const POSITIONS: Record<ConcreteQuest, Record<number, PositionKey>> = {
   '1st': { 1: 'UL', 2: 'UR', 3: 'LLo', 4: 'LRo', 5: 'ML', 6: 'LLi', 7: 'MR', 8: 'LRi' },
   '2nd': { 1: 'UL', 2: 'LLo', 3: 'UR', 4: 'ML', 5: 'LRo', 6: 'LLi', 7: 'LRi', 8: 'MR' },
 };
-
-const LEVELS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 function svg<K extends keyof SVGElementTagNameMap>(
   tag: K,
@@ -212,7 +211,7 @@ export function buildTriforce(
       patch: { triforce: !(store.getState().dungeons[String(level)]?.triforce ?? false) },
     });
 
-  for (const level of LEVELS) {
+  for (const level of TRIFORCE_LEVELS) {
     const group = svg('g', {
       class: 'z1r-tri-piece',
       'data-level': String(level),
@@ -315,10 +314,10 @@ export function buildTriforce(
   patches.push((state) => {
     const pieces = triforceCount(state);
     const entryType = level9EntryType(state.seed.level9);
-    count.textContent = `${pieces}/${LEVELS.length}`;
+    count.textContent = `${pieces}/${TRIFORCE_LEVELS.length}`;
     // All eight wedges, not `canEnterLevel9` — some settings open Level 9
     // early, and the celebration is for the finished triangle specifically.
-    figure.dataset.complete = String(pieces === LEVELS.length);
+    figure.dataset.complete = String(pieces === TRIFORCE_LEVELS.length);
     const open = canEnterLevel9(state);
     if (open) {
       status.textContent = 'Level 9 is open';
@@ -330,6 +329,14 @@ export function buildTriforce(
           break;
         case 'item':
           status.textContent = `Level 9 sealed — ${POOL_BY_ID.get(state.seed.level9)?.name} needed`;
+          break;
+        case 'requiredLevels':
+          const levelsNeeded = state.seed.requiredLevels.filter((level) => {
+            return !(state.dungeons[String(level)]?.triforce ?? false);
+          });
+          status.textContent = state.seed.requiredLevels.length == 0
+            ? 'Level 9 state unknown'
+            : `Level 9 sealed — need ${levelsNeeded.join(', ')}`;
           break;
         case 'closed':
           status.textContent = 'Level 9 sealed';

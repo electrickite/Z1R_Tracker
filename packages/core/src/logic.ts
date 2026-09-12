@@ -30,6 +30,11 @@ export function canEnterLevel9(state: TrackerState): boolean {
       return (state.items[item.itemId] ?? 0) == item.value;
     case 'open':
       return true;
+    case 'requiredLevels':
+      if (state.seed.requiredLevels.length == 0) return false;
+      return state.seed.requiredLevels.every((level) => {
+        return state.dungeons[String(level)]?.triforce ?? false;
+      });
     case 'closed':
     default:
       return false;
